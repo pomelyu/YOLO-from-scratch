@@ -145,3 +145,6 @@ Temporary Items
 
 # the traning data
 data/
+
+# notebook used in development
+*/test.ipynb
