@@ -20,3 +20,8 @@ OBJECT_CLASS = [
     "train",
     "tvmonitor",
 ]
+
+MODEL_DIM = 448
+GRID_SIZE = 7
+NUM_BOX = 2
+NUM_CLASS = len(OBJECT_CLASS)
