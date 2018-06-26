@@ -1,5 +1,9 @@
 import numpy as np
+import os
 from PIL import Image
+
+from .constants import MODEL_DIM, GRID_SIZE, NUM_BOX, NUM_CLASS
+from .utils import load_image, load_labels, isExtension
 
 def preprocess_image(image, model_dim):
     """ Resize image to required dimension and add necessary padding
@@ -72,3 +76,24 @@ def generate_bboxs(labels, image, model_dim, grid_size, num_box, num_class):
             bboxs[i][j][idx * box_size + 5 + bbox[0]] = 1
 
     return bboxs
+
+
+def preprocess_data(imgs_path, labels_path, sav_imgs_path, save_labels_path):
+    imgs = sorted([file for file in os.listdir(imgs_path) if isExtension(file, ".jpg")])
+    labels = sorted([label for label in os.listdir(labels_path) if isExtension(label, ".txt")])
+    assert len(imgs) == len(labels)
+    
+    for i in range(len(imgs)):
+        assert imgs[i][:imgs[i].rindex(".")] == labels[i][:labels[i].rindex(".")]
+        
+        image = load_image(os.path.join(imgs_path, imgs[i]))
+        preprocessed = preprocess_image(image, MODEL_DIM)
+        
+        image_name = "pre_" + imgs[i]
+        preprocessed.save(os.path.join(sav_imgs_path, image_name))
+        
+        label = load_labels(os.path.join(labels_path, labels[i]))
+        bboxs = generate_bboxs(label, image, MODEL_DIM, GRID_SIZE, NUM_BOX, NUM_CLASS)
+        
+        bboxs_name = "pre_" + labels[i][:labels[i].rindex(".")]
+        np.save(os.path.join(save_labels_path, bboxs_name), bboxs)

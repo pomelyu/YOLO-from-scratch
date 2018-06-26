@@ -130,3 +130,8 @@ def draw_bboxs(image, bboxs, show_grid=True, show_center=True):
     ax.set_xlim(0, model_dim)
     ax.set_ylim(model_dim, 0)
     plt.show()
+
+
+def isExtension(file_path, extension):
+    file_ext = os.path.splitext(file_path)[-1].lower()
+    return file_ext == extension.lower()
