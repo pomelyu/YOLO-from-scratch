@@ -21,7 +21,7 @@ def preprocess_image(image, model_dim):
 
 def generate_bboxs(labels, image, model_dim, grid_size, num_box, num_class):
     """ Divide image into grids and generate target value for YOLO training
-    
+
     Arguments:
         labels: labels from text file
         image: the original image
@@ -56,8 +56,7 @@ def generate_bboxs(labels, image, model_dim, grid_size, num_box, num_class):
         if cell_idx not in obj_in_cells:
             obj_in_cells[cell_idx] = [obj]
         else:
-            obj_in_cells[cell_idx] = obj_in_cells[cell_idx].append(obj)
-        
+            obj_in_cells[cell_idx].append(obj)
 
     box_size = 5 + num_class
     bboxs = np.zeros((grid_size, grid_size, num_box * box_size))
