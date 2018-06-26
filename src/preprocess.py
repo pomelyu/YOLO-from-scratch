@@ -2,8 +2,8 @@ import numpy as np
 import os
 from PIL import Image
 
-from .constants import MODEL_DIM, GRID_SIZE, NUM_BOX, NUM_CLASS
-from .utils import load_image, load_labels, isExtension
+from .constants import MODEL_DIM, GRID_SIZE, CLASS_NAME, NUM_BOX, NUM_CLASS, YOLO1_CLASS, YOLO2_CLASS
+from .utils import load_image, load_labels, isExtension, yolo1_to_yolo_2
 
 def preprocess_image(image, model_dim):
     """ Resize image to required dimension and add necessary padding
@@ -50,13 +50,18 @@ def generate_bboxs(labels, image, model_dim, grid_size, num_box, num_class):
         bw = (label[3] * new_w) / model_dim
         bh = (label[4] * new_h) / model_dim
 
+        if CLASS_NAME == YOLO1_CLASS:
+            class_index = label[0]
+        elif CLASS_NAME == YOLO2_CLASS:
+            class_index = yolo1_to_yolo_2(label[0])
+
         # calculate the cell which this bbox belong to
         grid_x = bx * grid_size
         grid_y = by * grid_size
 
         cell_idx = (int(grid_x), int(grid_y))
-
-        obj = (label[0], grid_x - cell_idx[0], grid_y - cell_idx[1], bw, bh)
+        
+        obj = (class_index, grid_x - cell_idx[0], grid_y - cell_idx[1], bw, bh)
         if cell_idx not in obj_in_cells:
             obj_in_cells[cell_idx] = [obj]
         else:

@@ -3,7 +3,7 @@ import matplotlib.patches as patches
 import os
 from PIL import Image
 
-from .constants import OBJECT_CLASS
+from .constants import YOLO1_CLASS, YOLO2_CLASS, CLASS_NAME, NUM_CLASS
 
 def load_image(image_path):
     """ load image from file
@@ -78,7 +78,7 @@ def visualize_label(image_path, label_path):
     
     w, h = img.size
     for label in labels:
-        class_name = OBJECT_CLASS[label[0]]
+        class_name = YOLO1_CLASS[label[0]]
         draw_label_rect(class_name, label[1] * w, label[2] * h, label[3] * w, label[4] * h, ax)
 
     plt.show()
@@ -113,8 +113,8 @@ def draw_bboxs(image, bboxs, show_grid=True, show_center=True):
                 if bbox[box_offset] == 0:
                     continue
                 
-                class_index= bbox[box_offset + 5: box_offset + 5 + 20].argmax()
-                class_name = OBJECT_CLASS[class_index]
+                class_index= bbox[box_offset + 5: box_offset + 5 + NUM_CLASS].argmax()
+                class_name = CLASS_NAME[class_index]
                 x = (i + bbox[box_offset + 1]) * cell_dim
                 y = (j + bbox[box_offset + 2]) * cell_dim
                 w = bbox[box_offset + 3] * model_dim
@@ -135,3 +135,7 @@ def draw_bboxs(image, bboxs, show_grid=True, show_center=True):
 def isExtension(file_path, extension):
     file_ext = os.path.splitext(file_path)[-1].lower()
     return file_ext == extension.lower()
+
+def yolo1_to_yolo_2(yolo1_class_index):
+    name = YOLO1_CLASS[yolo1_class_index]
+    return YOLO2_CLASS.index(name)
