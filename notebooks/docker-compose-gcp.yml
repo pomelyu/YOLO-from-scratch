@@ -1,0 +1,15 @@
+version: '3'
+
+services:
+  nb-server:
+    container_name: nb-server
+    image: cychien/tensorflow-gpu
+    ports:
+      - "8888:8888"
+      - "6006:6006"
+    volumes:
+      - ${PWD}/:/notebooks/nbs/
+      - ${PWD}/../data:/notebooks/data/
+      - ${PWD}/../src:/notebooks/src/
+    environment:
+      - PASSWORD=cychien
