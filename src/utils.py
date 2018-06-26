@@ -83,12 +83,13 @@ def visualize_label(image_path, label_path):
 
     plt.show()
 
-def draw_bboxs(image, bboxs, show_grid=True, show_center=True):
+def draw_bboxs(image, bboxs, threshold=0, show_grid=True, show_center=True):
     """ display the bounding box from the YOLO bounding box representation
 
     Arguments:
         image: the preprocessed image
         bboxs: the numpy array with (grid_size, grid_size, num_box*(5+num_class))
+        threshold: bounding box confidence threshold
 
     """
     plt.figure(figsize=(12, 12))
@@ -110,7 +111,7 @@ def draw_bboxs(image, bboxs, show_grid=True, show_center=True):
             box_size = len(bbox) / 2
             for box_idx in range(2):
                 box_offset = int(box_idx * box_size)
-                if bbox[box_offset] == 0:
+                if bbox[box_offset] <= threshold:
                     continue
                 
                 class_index= bbox[box_offset + 5: box_offset + 5 + NUM_CLASS].argmax()
