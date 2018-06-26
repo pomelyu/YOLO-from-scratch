@@ -13,8 +13,12 @@ def load_image(image_path):
     Return:
     image: PIL image object
     """
-    cwd = os.getcwd()
-    img = Image.open(os.path.join(cwd, image_path))
+    if os.path.isabs(image_path):
+        path = image_path
+    else:
+        cwd = os.getcwd()
+        path = os.path.join(cwd, image_path)
+    img = Image.open(path)
 
     return img
 
@@ -29,10 +33,14 @@ def load_labels(label_path):
     labels: array of object information
         [[class_label, x, y, w, h], [class_label, x, y, w, h]]
     """
-    cwd = os.getcwd()
+    if os.path.isabs(label_path):
+        path = label_path
+    else:
+        cwd = os.getcwd()
+        path = os.path.join(cwd, label_path)
 
     labels = []
-    with open(os.path.join(cwd, label_path), 'r') as fin:
+    with open(path, 'r') as fin:
         for line in fin:
             obj = [ float(num) for num in line.split(" ") ]
             obj[0] = int(obj[0])
