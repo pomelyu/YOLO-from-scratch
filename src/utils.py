@@ -132,6 +132,25 @@ def draw_bboxs(image, bboxs, threshold=0, show_grid=True, show_center=True):
     ax.set_ylim(model_dim, 0)
     plt.show()
 
+def draw_score_bbox(image, scores, boxes, classes, color="blue"):
+    plt.figure(figsize=(12, 12))
+    ax = plt.gca()
+    ax.imshow(image)
+    
+    model_dim, _, _ = image.shape
+    
+    for score, box, class_index in zip(scores, boxes, classes):
+        x = box[0] * model_dim
+        y = box[1] * model_dim
+        w = (box[2] - box[0]) * model_dim
+        h = (box[3] - box[1]) * model_dim
+        
+        name = "{}: {:.2}".format(CLASS_NAME[class_index], score)
+        
+        ax.text(x, y, name, fontsize=12, horizontalalignment="left", 
+            verticalalignment="top", backgroundcolor=color, color="white")
+        ax.add_patch(patches.Rectangle((x, y), w, h, fill=False, linewidth=1, edgecolor=color))
+
 
 def isExtension(file_path, extension):
     file_ext = os.path.splitext(file_path)[-1].lower()
