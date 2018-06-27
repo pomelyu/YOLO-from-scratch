@@ -1,6 +1,15 @@
 FROM ubuntu:16.04
 
-LABEL maintainer="Craig Citro <craigcitro@google.com>"
+LABEL maintainer="Clayne Robison <clayne.b.robison@intel.com>"
+
+# This parameter MUST be set by parameterized_docker_build.sh
+ARG TF_WHL_URL
+
+# Optional parameters
+ARG TF_BUILD_VERSION=r1.9
+ARG PYTHON="python"
+ARG PYTHON_DEV="python-dev"
+ARG PIP="pip"
 
 # Pick up some TF dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -12,7 +21,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         libzmq3-dev \
         pkg-config \
         python \
-        python-dev \
+        ${PYTHON_DEV} \
         rsync \
         software-properties-common \
         unzip \
@@ -24,7 +33,7 @@ RUN curl -O https://bootstrap.pypa.io/get-pip.py && \
     python get-pip.py && \
     rm get-pip.py
 
-RUN pip --no-cache-dir install \
+RUN ${PIP} --no-cache-dir install \
         Pillow \
         h5py \
         ipykernel \
@@ -37,18 +46,13 @@ RUN pip --no-cache-dir install \
         && \
     python -m ipykernel.kernelspec
 
-# --- DO NOT EDIT OR DELETE BETWEEN THE LINES --- #
-# These lines will be edited automatically by parameterized_docker_build.sh. #
-# COPY _PIP_FILE_ /
-# RUN pip --no-cache-dir install /_PIP_FILE_
-# RUN rm -f /_PIP_FILE_
+COPY ${TF_WHL_URL} /
+RUN ${PIP} install --no-cache-dir --force-reinstall /${TF_WHL_URL} && \
+    rm -rf /${TF_WHL_URL}
 
-# Install TensorFlow CPU version from central repo
-RUN pip --no-cache-dir install \
-    http://storage.googleapis.com/tensorflow/linux/cpu/tensorflow-0.0.0-cp27-none-linux_x86_64.whl
-# --- ~ DO NOT EDIT OR DELETE BETWEEN THE LINES --- #
-
-# RUN ln -s -f /usr/bin/python3 /usr/bin/python#
+RUN if [ "${PYTHON}" = "python3" ]; then \
+  ln -s -f /usr/bin/python3 /usr/bin/python; \
+  fi
 
 # Set up our notebook config.
 COPY jupyter_notebook_config.py /root/.jupyter/

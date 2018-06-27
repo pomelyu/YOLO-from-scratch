@@ -2,7 +2,9 @@ version: '3'
 
 services:
   nb-server:
-    build: ./notebook-gpu
+    build:
+      context: ./notebook-gpu
+      dockerfile: Dockerfile.gpu
     container_name: nb-server
     image: cychien/tensorflow-gpu
     ports:

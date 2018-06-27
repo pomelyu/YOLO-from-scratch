@@ -1,11 +1,18 @@
-FROM ubuntu:16.04
+FROM nvidia/cuda:9.0-base-ubuntu16.04
 
 LABEL maintainer="Craig Citro <craigcitro@google.com>"
 
 # Pick up some TF dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
         build-essential \
+        cuda-command-line-tools-9-0 \
+        cuda-cublas-9-0 \
+        cuda-cufft-9-0 \
+        cuda-curand-9-0 \
+        cuda-cusolver-9-0 \
+        cuda-cusparse-9-0 \
         curl \
+        libcudnn7=7.1.4.18-1+cuda9.0 \
         libfreetype6-dev \
         libhdf5-serial-dev \
         libpng12-dev \
@@ -43,9 +50,9 @@ RUN pip --no-cache-dir install \
 # RUN pip --no-cache-dir install /_PIP_FILE_
 # RUN rm -f /_PIP_FILE_
 
-# Install TensorFlow CPU version from central repo
+# Install TensorFlow GPU version.
 RUN pip --no-cache-dir install \
-    http://storage.googleapis.com/tensorflow/linux/cpu/tensorflow-0.0.0-cp27-none-linux_x86_64.whl
+    http://storage.googleapis.com/tensorflow/linux/gpu/tensorflow_gpu-0.0.0-cp27-none-linux_x86_64.whl
 # --- ~ DO NOT EDIT OR DELETE BETWEEN THE LINES --- #
 
 # RUN ln -s -f /usr/bin/python3 /usr/bin/python#
@@ -60,6 +67,9 @@ COPY notebooks /notebooks
 #   https://github.com/ipython/ipython/issues/7062
 # We just add a little wrapper script.
 COPY run_jupyter.sh /
+
+# For CUDA profiling, TensorFlow requires CUPTI.
+ENV LD_LIBRARY_PATH /usr/local/cuda/extras/CUPTI/lib64:$LD_LIBRARY_PATH
 
 # TensorBoard
 EXPOSE 6006
