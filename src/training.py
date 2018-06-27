@@ -30,3 +30,16 @@ def batch_generator(imgs_path, labels_path, batch_size=32, random_seed=0):
         Y = np.stack(Y, axis=0)
         
         yield X, Y
+
+def train_yolo(model, train_X, train_Y, epochs=10, batch_size=32, epoch_begin=0):
+    m = len([file for file in os.listdir(train_X) if isExtension(file, ".jpg")])
+
+    for i in range(epochs):
+        print("Epoch:", epoch_begin + i)
+        data_stream = batch_generator(
+            train_X,
+            train_Y,
+            batch_size=batch_size,
+            random_seed=epoch_begin + i)
+    
+        model.fit_generator(data_stream, steps_per_epoch=(m // batch_size))
