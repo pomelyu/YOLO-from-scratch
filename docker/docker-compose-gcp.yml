@@ -2,6 +2,7 @@ version: '3'
 
 services:
   nb-server:
+    build: ./notebook-gpu
     container_name: nb-server
     image: cychien/tensorflow-gpu
     ports:
