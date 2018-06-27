@@ -7,7 +7,7 @@ services:
     ports:
       - "8888:8888"
     volumes:
-      - ${PWD}/:/home/jovyan/nbs/
+      - ${PWD}/../notebooks:/home/jovyan/nbs/
       - ${PWD}/../data:/home/jovyan/data/
       - ${PWD}/../src:/home/jovyan/src/
       - ${PWD}/../model:/home/jovyan/model
