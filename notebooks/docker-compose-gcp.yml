@@ -11,5 +11,6 @@ services:
       - ${PWD}/:/notebooks/nbs/
       - ${PWD}/../data:/notebooks/data/
       - ${PWD}/../src:/notebooks/src/
+      - ${PWD}/../model:/notebooks/model/
     environment:
       - PASSWORD=cychien

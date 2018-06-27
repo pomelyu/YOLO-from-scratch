@@ -10,6 +10,7 @@ services:
       - ${PWD}/:/home/jovyan/nbs/
       - ${PWD}/../data:/home/jovyan/data/
       - ${PWD}/../src:/home/jovyan/src/
+      - ${PWD}/../model:/home/jovyan/model
     user: root
     environment:
       - NB_UID=1001
