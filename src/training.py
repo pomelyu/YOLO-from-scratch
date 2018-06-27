@@ -43,3 +43,14 @@ def train_yolo(model, train_X, train_Y, epochs=10, batch_size=32, epoch_begin=0)
             random_seed=epoch_begin + i)
     
         model.fit_generator(data_stream, steps_per_epoch=(m // batch_size))
+
+
+def evaluate_yolo(model, X, Y, batch_size=32):
+    m = len([file for file in os.listdir(X) if isExtension(file, ".jpg")])
+
+    data_stream = batch_generator(
+        X,
+        Y,
+        batch_size=batch_size)
+    loss = model.evaluate_generator(data_stream, steps=(m // batch_size), verbose=1)
+    print("Evaluation loss:", loss)
