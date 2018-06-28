@@ -36,9 +36,10 @@ Navigate to [localhost:8888](localhost:8888), password is defined as `PASSWORD` 
 - [x] tiny network: reference from [onther implementation](https://github.com/persistforever/yolo-tensorflow)
 - [x] implement loss function based on YOLO paper
 - [x] postprocess: based on [Coursera CNN](https://www.coursera.org/learn/convolutional-neural-networks/home/welcome)
-- [ ] document:
+- [x] document:
+- [x] data argumentation: Flip
 - [ ] cross validation
-- [ ] data argumentation
+- [ ] data argumentation: HSV transform
 - [ ] deepest neural network
 - [ ] YOLO3 anchor box and loss function
 
