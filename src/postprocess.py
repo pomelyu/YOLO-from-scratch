@@ -29,20 +29,23 @@ def bbox_cell_to_global(boxes):
         
     Returns:
         boxes: [GRID_SIZE, GRID_SIZE, NUM_BOX, 4] - corner_x1, corner_y1, corner_x2, corner_y2
-    """
+    """    
+    # In bbox matrix, x coordinate is first axis(axis=0, column)
+    # but in the image, x coordinate is horizontal. hence offset_x is 
+    # [[1, 1, ... , 1], 
+    #   2, 2, ... , 2],
+    #   ...
+    #   6, 6, ... , 6]]
     cell_offset_x = tf.reshape(tf.constant(
+        np.tile(np.array(range(GRID_SIZE)).reshape((-1, 1)), (1, GRID_SIZE)),
+        dtype="float32"), [GRID_SIZE, GRID_SIZE, 1, 1])
+
+    cell_offset_y = tf.reshape(tf.constant(
         np.tile(np.array(range(GRID_SIZE)), (GRID_SIZE, 1)),
         dtype="float32"), [GRID_SIZE, GRID_SIZE, 1, 1])
     
-    cell_offset_y = tf.reshape(tf.constant(
-        np.tile(np.array(range(GRID_SIZE)).reshape((-1, 1)), (1, GRID_SIZE)),
-        dtype="float32"), [GRID_SIZE, GRID_SIZE, 1, 1])
-    
-    # why not
-    # center_x = (boxes[:, :, :, 0:1] + cell_offset_y) / GRID_SIZE
-    # center_y = (boxes[:, :, :, 1:2] + cell_offset_x) / GRID_SIZE
-    center_x = (boxes[:, :, :, 0:1] + cell_offset_y) / GRID_SIZE
-    center_y = (boxes[:, :, :, 1:2] + cell_offset_x) / GRID_SIZE
+    center_x = (boxes[:, :, :, 0:1] + cell_offset_x) / GRID_SIZE
+    center_y = (boxes[:, :, :, 1:2] + cell_offset_y) / GRID_SIZE
     half_w = boxes[:, :, :, 2:3] / 2
     half_h = boxes[:, :, :, 3:4] / 2
     
