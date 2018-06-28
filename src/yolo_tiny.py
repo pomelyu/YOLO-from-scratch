@@ -1,10 +1,9 @@
 from keras import layers as L
 from keras.models import Model
 
-from .loss import create_yolo1_loss
 from .constants import MODEL_DIM, GRID_SIZE, NUM_BOX, NUM_CLASS
 
-def yolo_tiny_model(optimizer="adam", lambda_coord=5, lambda_noobj=0.5):
+def yolo_tiny_model():
     # Input Layer
     X_input = L.Input((MODEL_DIM, MODEL_DIM, 3))
     X = X_input
@@ -62,10 +61,5 @@ def yolo_tiny_model(optimizer="adam", lambda_coord=5, lambda_noobj=0.5):
     X = L.Concatenate(axis=-1)([X_BBox, X_Class])
     
     model = Model(inputs=X_input, outputs=X, name="Yolo_tiny")
-    
-    # Loss function
-    yolo1_loss = create_yolo1_loss(lambda_coord, lambda_noobj)
-
-    model.compile(optimizer="adam", loss=yolo1_loss)
 
     return model
