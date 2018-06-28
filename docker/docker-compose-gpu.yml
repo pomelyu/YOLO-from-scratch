@@ -2,11 +2,7 @@ version: '3'
 
 services:
   nb-server:
-    build:
-      context: ./notebook-gpu
-      dockerfile: Dockerfile.gpu
-    container_name: nb-server
-    image: cychien/tensorflow-gpu
+    image: tensorflow/tensorflow:latest-gpu-py3
     ports:
       - "8888:8888"
       - "6006:6006"
@@ -17,3 +13,4 @@ services:
       - ${PWD}/../model:/notebooks/model/
     environment:
       - PASSWORD=cychien
+    command: bash -c "pip3 install keras && /run_jupyter.sh --allow-root"
