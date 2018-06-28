@@ -4,7 +4,14 @@ import numpy as np
 from .constants import GRID_SIZE, NUM_BOX
 from .utils import load_image, isExtension
 
-def batch_generator(imgs_path, labels_path, batch_size=32, random_seed=0):
+def flip_data_horizontal(image, bbox):
+    flipped_image = np.flip(image, axis=1)
+    flipped_bbox = np.flip(bbox, axis=0)
+    flipped_bbox[:, :, :, 1] = 1 - flipped_bbox[:, :, :, 1]
+    
+    return flipped_image, flipped_bbox
+
+def batch_generator(imgs_path, labels_path, batch_size=32, random_seed=0, argument_data=True):
     imgs = sorted([file for file in os.listdir(imgs_path) if isExtension(file, ".jpg")])
     labels = sorted([label for label in os.listdir(labels_path) if isExtension(label, ".npy")])
     assert len(imgs) == len(labels)
@@ -20,10 +27,17 @@ def batch_generator(imgs_path, labels_path, batch_size=32, random_seed=0):
             assert imgs[i][:imgs[i].rindex(".")] == labels[i][:labels[i].rindex(".")]
             
             image = load_image(os.path.join(imgs_path, imgs[i]))
-            X.append(np.asarray(image))
-            
+
             bboxs = np.load(os.path.join(labels_path, labels[i]))
             bboxs = bboxs.reshape((GRID_SIZE, GRID_SIZE, NUM_BOX, -1))
+            
+            # Data argumentation: Flip
+            np.random.seed(random_seed + i)
+            to_flip = (np.random.rand() < 0.5)
+            if argument_data and to_flip:
+                image, bboxs = flip_data_horizontal(image, bboxs)
+
+            X.append(np.asarray(image))
             Y.append(bboxs)
             
         X = np.stack(X, axis=0)
