@@ -1,5 +1,7 @@
 # Using TensorFlow via Docker
 
+### Cloned from [tensorflow](https://github.com/tensorflow/tensorflow/tree/master/tensorflow/tools/docker) with slightly modified
+
 This directory contains `Dockerfile`s to make it easy to get up and running with
 TensorFlow via [Docker](http://www.docker.com/).
 
