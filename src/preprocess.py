@@ -84,17 +84,14 @@ def generate_bboxs(labels, image, model_dim, grid_size, num_box, num_class):
 
 
 def preprocess_data(imgs_path, labels_path, sav_imgs_path, save_labels_path):
-    imgs = sorted([file for file in os.listdir(imgs_path) if isExtension(file, ".jpg")])
-    labels = sorted([label for label in os.listdir(labels_path) if isExtension(label, ".txt")])
-    assert len(imgs) == len(labels)
+    labels = [label for label in os.listdir(labels_path) if isExtension(label, ".txt")]
     
-    for i in range(len(imgs)):
-        assert imgs[i][:imgs[i].rindex(".")] == labels[i][:labels[i].rindex(".")]
-        
-        image = load_image(os.path.join(imgs_path, imgs[i]))
+    for i in range(len(labels)):
+        image_name = labels[i].replace(".txt", ".jpg")
+        image = load_image(os.path.join(imgs_path, image_name))
         preprocessed = preprocess_image(image, MODEL_DIM)
         
-        image_name = "pre_" + imgs[i]
+        image_name = "pre_" + image_name
         preprocessed.save(os.path.join(sav_imgs_path, image_name))
         
         label = load_labels(os.path.join(labels_path, labels[i]))
