@@ -65,6 +65,7 @@ def evaluate_yolo(model, X, Y, batch_size=32):
     data_stream = batch_generator(
         X,
         Y,
-        batch_size=batch_size)
+        batch_size=batch_size,
+        argument_data=False)
     loss = model.evaluate_generator(data_stream, steps=(m // batch_size), verbose=1)
     print("Evaluation loss:", loss)
