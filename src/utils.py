@@ -3,7 +3,7 @@ import matplotlib.patches as patches
 import os
 from PIL import Image
 
-from .constants import YOLO1_CLASS, YOLO2_CLASS, CLASS_NAME, NUM_CLASS
+from .constants import YOLO1_CLASS, YOLO2_CLASS, CLASS_NAME, NUM_CLASS, MODEL_DIM
 
 def load_image(image_path):
     """ load image from file
@@ -183,3 +183,48 @@ def convert_yolo_labels(images_dir, labels_dir, target_dir):
         with open(os.path.join(target_dir, label_file), "w") as fout:
             for converted_label in converted:
                 fout.write(" ".join(converted_label) + "\n")
+                
+def convert_box_to_original(image, bboxs, model_dim):
+    img_size = image.size
+    ratio = min(model_dim / img_size[0], model_dim / img_size[1])
+    new_w = int(img_size[0] * ratio)
+    new_h = int(img_size[1] * ratio)
+    
+    converted = []
+    for bbox in bboxs:
+        w = (bbox[2] - bbox[0]) * model_dim / ratio
+        h = (bbox[3] - bbox[1]) * model_dim / ratio
+        left = ((bbox[0] * model_dim - (model_dim - new_w) // 2)) / ratio
+        top = (bbox[1] * model_dim - (model_dim - new_h) // 2) / ratio
+        right = left + w
+        bottom = top + h
+        converted.append([left, top, right, bottom])
+        
+    return converted
+
+def data_generator(images_dir, batch_size=32):
+    images = [image for image in os.listdir(images_dir) if isExtension(image, ".jpg")]
+    
+    m = len(images)
+    for offset in range(0, m, batch_size):
+        X = []
+        files = []
+        for i in range(offset, min(offset+batch_size, m)):
+            file_name = images[i].replace(".jpg", "")
+            image = utils.load_image(os.path.join(images_dir, images[i]))
+            
+            X.append(np.asarray(image))
+            files.append(file_name)
+            
+        X = np.stack(X, axis=0)
+        
+        yield X, files
+        
+def write_prediction_to_file(file_path, image_path, scores, boxes, classes):
+    image = load_image(image_path)
+    boxes = convert_box_to_original(image, boxes, MODEL_DIM)
+    
+    with open(file_path, "w") as fout:
+        for score, box, class_idx in zip(scores, boxes, classes):
+            fout.write("{} {:.6f} {:.0f} {:.0f} {:.0f} {:.0f}\n".format(
+                CLASS_NAME[class_idx], score, box[0], box[1], box[2], box[3]))
