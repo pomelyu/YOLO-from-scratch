@@ -45,7 +45,11 @@ def batch_generator(imgs_path, labels_path, batch_size=32, random_seed=0, argume
 def train_yolo(model, train_X_list, train_Y_list, epochs=10, batch_size=32, epoch_begin=0):
     for i in range(epochs):
         print("Epoch:", epoch_begin + i)
-        for train_X, train_Y in zip(train_X_list, train_Y_list):
+        np.random.seed(epoch_begin + i)
+        dataset_index = np.random.permutation(len(train_X_list))
+        for i in dataset_index:
+            train_X = train_X_list[i]
+            train_Y = train_Y_list[i]
             m = len([file for file in os.listdir(train_X) if isExtension(file, ".jpg")])
             data_stream = batch_generator(
                 train_X,
