@@ -108,35 +108,3 @@ def non_maximum_supress(scores, boxes, classes, max_boxes=10, iou_threshold=0.5)
     classes = K.gather(classes, nms_indices)
     
     return scores, boxes, classes
-
-
-def postprocessing(sess, Y_pred, conf_threshold=0.6, iou_threshold=0.5):
-    """ Perform thresholding and non-maximum supression to the neural network output
-
-    Argumens:
-        sess: tensorflow Session
-        Y_pred: [GRID_SIZE, GRID_SIZE, NUM_BOX, 5 + NUM_CLASS] tensor - output of neural network
-        conf_threshold: the confidence threshold
-        iou_threshold: the threshold to evaluated overlapped boxes
-
-
-    """
-    
-    Y = tf.placeholder("float32", shape=(GRID_SIZE, GRID_SIZE, NUM_BOX, 5 + NUM_CLASS))
-    
-    box_confidence, boxes, box_class_probs = split_bbox(Y)
-    boxes = bbox_cell_to_global(boxes)
-    
-    # chekck dimension
-    tf.assert_equal(box_confidence.shape.as_list(), [GRID_SIZE, GRID_SIZE, NUM_BOX, 1])
-    tf.assert_equal(boxes.shape.as_list(), [GRID_SIZE, GRID_SIZE, NUM_BOX, 4])
-    tf.assert_equal(box_class_probs.shape.as_list(), [GRID_SIZE, GRID_SIZE, NUM_BOX, NUM_CLASS])
-    
-    scores, boxes, classes = filter_bbox_by_scores(
-        box_confidence, boxes, box_class_probs, threshold=conf_threshold)
-    scores, boxes, classes = non_maximum_supress(
-        scores, boxes, classes, iou_threshold=iou_threshold)
-    
-    out_scores, out_boxes, out_classes = sess.run([scores, boxes, classes], feed_dict={ Y: Y_pred })
-    
-    return out_scores, out_boxes, out_classes
