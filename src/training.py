@@ -10,47 +10,25 @@ def flip_data_horizontal(image, bbox):
     flipped_bbox[:, :, :, 1] = 1 - flipped_bbox[:, :, :, 1]
     
     return flipped_image, flipped_bbox
-
-def batch_generator(imgs_path, labels_path, batch_size=32, random_seed=0, argument_data=True):
-    labels = [label for label in os.listdir(labels_path) if isExtension(label, ".npy")]
-    
-    m = len(labels)
-    np.random.seed(random_seed)
-    indexs = np.random.permutation(m)
-    for offset in range(0, m, batch_size):
-        X = []
-        Y = []
-        batch_index = indexs[offset:min(offset+batch_size, m)]
-        for i in batch_index:
-            image_name = labels[i].replace(".npy", ".jpg")
-            image = load_image(os.path.join(imgs_path, image_name))
-
-            bboxs = np.load(os.path.join(labels_path, labels[i]))
-            bboxs = bboxs.reshape((GRID_SIZE, GRID_SIZE, NUM_BOX, -1))
-            
-            # Data argumentation: Flip
-            np.random.seed(random_seed + i)
-            to_flip = (np.random.rand() < 0.5)
-            if argument_data and to_flip:
-                image, bboxs = flip_data_horizontal(image, bboxs)
-
-            X.append(np.asarray(image))
-            Y.append(bboxs)
-            
-        X = np.stack(X, axis=0)
-        Y = np.stack(Y, axis=0)
-        
-        yield X, Y
         
 def generator_from_array(labels, images, batch_size=32, random_seed=0, argument_data=True):
     assert len(labels) == len(images)
-    
     m = len(labels)
+    
+    VGG_MEAN = [103.939, 116.779, 123.68]
+    
     for offset in range(0, m, batch_size):
         X = []
         Y = []
         for i in range(offset, min(offset+batch_size, m)):
             image = load_image(images[i])
+            
+            # preprocess image to VGG format
+            vgg_image = np.array(image)
+            vgg_image = vgg_image[:, :, ::-1]
+            vgg_image[:, :, 0] = vgg_image[:, :, 0] - VGG_MEAN[0]
+            vgg_image[:, :, 1] = vgg_image[:, :, 1] - VGG_MEAN[1]
+            vgg_image[:, :, 2] = vgg_image[:, :, 2] - VGG_MEAN[2]
 
             bboxs = np.load(labels[i])
             bboxs = bboxs.reshape((GRID_SIZE, GRID_SIZE, NUM_BOX, -1))
@@ -111,15 +89,22 @@ def train_valid_yolo(model, train_images_dir, train_labels_dir, valid_images_dir
             validation_data=valid_generator,
             validation_steps=(len(valid_index) // batch_size))
         
-        
 
-def evaluate_yolo(model, X, Y, batch_size=32):
-    m = len([file for file in os.listdir(X) if isExtension(file, ".jpg")])
-
-    data_stream = batch_generator(
-        X,
-        Y,
+def evaluate_yolo(model, images_dir, labels_dir, batch_size=32):
+    test_labels = np.array([label for label in os.listdir(labels_dir) if isExtension(label, ".npy")])
+    m = len(test_labels)
+    
+    apply_labels_dir = np.vectorize(lambda label, labels_dir: os.path.join(labels_dir, label))
+    apply_images_dir = np.vectorize(lambda label, images_dir: os.path.join(images_dir, label.replace(".npy", ".jpg")))
+    
+    test_images = apply_images_dir(test_labels, images_dir)
+    test_labels = apply_labels_dir(test_labels, labels_dir)
+    
+    test_generator = generator_from_array(
+        test_labels,
+        test_images,
         batch_size=batch_size,
         argument_data=False)
-    loss = model.evaluate_generator(data_stream, steps=(m // batch_size), verbose=1)
+    
+    loss = model.evaluate_generator(test_generator, steps=(m // batch_size), verbose=1)
     print("Evaluation loss:", loss)
