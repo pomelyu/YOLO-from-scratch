@@ -69,62 +69,47 @@ def generator_from_array(labels, images, batch_size=32, random_seed=0, argument_
         
         yield X, Y
 
-def train_yolo(model, train_X_list, train_Y_list, epochs=10, batch_size=32, epoch_begin=0):
+def train_valid_yolo(model, train_images_dir, train_labels_dir, valid_images_dir, valid_labels_dir, valid_ratio=0.2, batch_size=32, epochs=10, epoch_begin=0):
+    apply_labels_dir = np.vectorize(lambda label, labels_dir: os.path.join(labels_dir, label))
+    apply_images_dir = np.vectorize(lambda label, images_dir: os.path.join(images_dir, label.replace(".npy", ".jpg")))
+    
+    train_labels = np.array([label for label in os.listdir(train_labels_dir) if isExtension(label, ".npy")])
+    m_train = len(train_labels)
+    train_images = apply_images_dir(train_labels, train_images_dir)
+    train_labels = apply_labels_dir(train_labels, train_labels_dir)
+    
+    valid_labels = np.array([label for label in os.listdir(valid_labels_dir) if isExtension(label, ".npy")])
+    m_valid = len(valid_labels)
+    valid_images = apply_images_dir(valid_labels, valid_images_dir)
+    valid_labels = apply_labels_dir(valid_labels, valid_labels_dir)
+    
+    np.random.seed(0)
+    valid_index = np.random.permutation(m_valid)[:int(m_valid*valid_ratio)]
+    
     for i in range(epochs):
-        print("Epoch:", epoch_begin + i)
-        np.random.seed(epoch_begin + i)
-        dataset_index = np.random.permutation(len(train_X_list))
-        for i in dataset_index:
-            train_X = train_X_list[i]
-            train_Y = train_Y_list[i]
-            m = len([file for file in os.listdir(train_X) if isExtension(file, ".jpg")])
-            data_stream = batch_generator(
-                train_X,
-                train_Y,
-                batch_size=batch_size,
-                random_seed=epoch_begin + i)
-
-            model.fit_generator(data_stream, steps_per_epoch=(m // batch_size))
-
-def train_valid_yolo(model, images_dir, labels_dir, valid_ratio=0.2, batch_size=32, epochs=10, epoch_begin=0):
-    for i in range(epochs):
-        random_seed = epoch_begin + i
         print("Epoch:", epoch_begin+i)
+        
+        random_seed = epoch_begin + i
         np.random.seed(random_seed)
         
-        labels_file = np.array([label for label in os.listdir(labels_dir) if isExtension(label, ".npy")])
-        
-        # shuffle and split train/valid
-        m = len(labels_file)
-        labels_file = labels_file[np.random.permutation(m)]
-        train_labels = labels_file[:-int(m*valid_ratio)]
-        valid_labels = labels_file[-int(m*valid_ratio):]
-        
-        apply_labels_dir = np.vectorize(lambda label: os.path.join(labels_dir, label))
-        apply_images_dir = np.vectorize(lambda label: os.path.join(images_dir, label.replace(".npy", ".jpg")))
-        
-        train_images = apply_images_dir(train_labels)
-        train_labels = apply_labels_dir(train_labels)
-        valid_images = apply_images_dir(valid_labels)
-        valid_labels = apply_labels_dir(valid_labels)
-        
+        train_index = np.random.permutation(m_train)
         train_generator = generator_from_array(
-            train_labels, 
-            train_images, 
+            train_labels[train_index], 
+            train_images[train_index], 
             batch_size=batch_size, 
             random_seed=random_seed)
         
         valid_generator = generator_from_array(
-            valid_labels,
-            valid_images,
+            valid_labels[valid_index],
+            valid_images[valid_index],
             batch_size=batch_size,
-            random_seed=random_seed)
-        
+            argument_data=False)
+
         model.fit_generator(
             train_generator,
-            steps_per_epoch=(len(train_images) // batch_size),
+            steps_per_epoch=(m_train // batch_size),
             validation_data=valid_generator,
-            validation_steps=(len(valid_images) // batch_size))
+            validation_steps=(len(valid_index) // batch_size))
         
         
 
