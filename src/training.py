@@ -47,14 +47,30 @@ def generator_from_array(labels, images, batch_size=32, random_seed=0, argument_
         
         yield X, Y
 
-def train_valid_yolo(model, train_images_dir, train_labels_dir, valid_images_dir, valid_labels_dir, valid_ratio=0.2, batch_size=32, epochs=10, epoch_begin=0):
+def train_valid_yolo(model, train_images_dirs, train_labels_dirs, valid_images_dir, valid_labels_dir, valid_ratio=0.2, batch_size=32, epochs=10, epoch_begin=0):
     apply_labels_dir = np.vectorize(lambda label, labels_dir: os.path.join(labels_dir, label))
     apply_images_dir = np.vectorize(lambda label, images_dir: os.path.join(images_dir, label.replace(".npy", ".jpg")))
     
-    train_labels = np.array([label for label in os.listdir(train_labels_dir) if isExtension(label, ".npy")])
+    
+    assert len(train_labels_dirs) == len(train_images_dirs)
+    
+    train_labels = np.array([])
+    train_images = np.array([])
+    for dataset_index in range(len(train_labels_dirs)):
+        labels_dir = train_labels_dirs[dataset_index]
+        images_dir = train_images_dirs[dataset_index]
+        
+        train_labels_dataset = np.array([
+            label for label in os.listdir(labels_dir) if isExtension(label, ".npy")
+        ])
+        
+        train_images_dataset = apply_images_dir(train_labels_dataset, images_dir)
+        train_labels_dataset = apply_labels_dir(train_labels_dataset, labels_dir)
+        
+        train_labels = np.concatenate((train_labels, train_labels_dataset))
+        train_images = np.concatenate((train_images, train_images_dataset))
+    
     m_train = len(train_labels)
-    train_images = apply_images_dir(train_labels, train_images_dir)
-    train_labels = apply_labels_dir(train_labels, train_labels_dir)
     
     valid_labels = np.array([label for label in os.listdir(valid_labels_dir) if isExtension(label, ".npy")])
     m_valid = len(valid_labels)
