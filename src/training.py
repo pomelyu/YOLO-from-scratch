@@ -1,9 +1,9 @@
 import os
 import numpy as np
 
-from .constants import GRID_SIZE, NUM_BOX
+from .constants import GRID_SIZE, NUM_BOX, GAMMA_MIN, GAMMA_MAX
 from .utils import load_image, isExtension
-from .image_transform import flip_image_horizontal, covert_to_VGG_input
+from .image_transform import flip_image_horizontal, adjust_gamma, covert_to_VGG_input
 
         
 def generator_from_array(labels, images, batch_size=32, random_seed=0, argument_data=True):
@@ -19,12 +19,16 @@ def generator_from_array(labels, images, batch_size=32, random_seed=0, argument_
             bboxs = np.load(labels[i])
             bboxs = bboxs.reshape((GRID_SIZE, GRID_SIZE, NUM_BOX, -1))
             
-            # Data argumentation: Flip
-            np.random.seed(random_seed + i)
-            to_flip = (np.random.rand() < 0.5)
-            if argument_data and to_flip:
-                image, bboxs = flip_image_horizontal(image, bboxs)
-                
+            # Data argumentation
+            if argument_data:
+                np.random.seed(random_seed + i)
+                random_num = np.random.rand()
+
+                if random_num < 0.5:
+                    image, bboxs = flip_image_horizontal(image, bboxs)
+
+                gamma = GAMMA_MIN + random_num * (GAMMA_MAX - GAMMA_MIN)
+                image = adjust_gamma(image, gamma)
                 
             # convert image to vgg format
             image = covert_to_VGG_input(image)

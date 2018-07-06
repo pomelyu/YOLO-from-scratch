@@ -1,4 +1,5 @@
 import numpy as np
+from skimage import exposure
 
 def flip_image_horizontal(image, bbox):
     image = np.flip(image, axis=1)
@@ -7,6 +8,10 @@ def flip_image_horizontal(image, bbox):
     
     return image, bbox
 
+def adjust_gamma(image, gamma):
+    image = exposure.adjust_gamma(image, gamma)
+    
+    return image
 
 def covert_to_VGG_input(image):
     VGG_MEAN = [103.939, 116.779, 123.68]
