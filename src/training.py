@@ -3,33 +3,19 @@ import numpy as np
 
 from .constants import GRID_SIZE, NUM_BOX
 from .utils import load_image, isExtension
+from .image_transform import flip_image_horizontal, covert_to_VGG_input
 
-def flip_data_horizontal(image, bbox):
-    flipped_image = np.flip(image, axis=1)
-    flipped_bbox = np.flip(bbox, axis=0)
-    flipped_bbox[:, :, :, 1] = 1 - flipped_bbox[:, :, :, 1]
-    
-    return flipped_image, flipped_bbox
         
 def generator_from_array(labels, images, batch_size=32, random_seed=0, argument_data=True):
     assert len(labels) == len(images)
     m = len(labels)
     
-    VGG_MEAN = [103.939, 116.779, 123.68]
-    
     for offset in range(0, m, batch_size):
         X = []
         Y = []
         for i in range(offset, min(offset+batch_size, m)):
-            image = load_image(images[i])
+            image = np.array(load_image(images[i]))
             
-            # preprocess image to VGG format
-            vgg_image = np.array(image)
-            vgg_image = vgg_image[:, :, ::-1]
-            vgg_image[:, :, 0] = vgg_image[:, :, 0] - VGG_MEAN[0]
-            vgg_image[:, :, 1] = vgg_image[:, :, 1] - VGG_MEAN[1]
-            vgg_image[:, :, 2] = vgg_image[:, :, 2] - VGG_MEAN[2]
-
             bboxs = np.load(labels[i])
             bboxs = bboxs.reshape((GRID_SIZE, GRID_SIZE, NUM_BOX, -1))
             
@@ -37,7 +23,11 @@ def generator_from_array(labels, images, batch_size=32, random_seed=0, argument_
             np.random.seed(random_seed + i)
             to_flip = (np.random.rand() < 0.5)
             if argument_data and to_flip:
-                image, bboxs = flip_data_horizontal(image, bboxs)
+                image, bboxs = flip_image_horizontal(image, bboxs)
+                
+                
+            # convert image to vgg format
+            image = covert_to_VGG_input(image)
 
             X.append(np.asarray(image))
             Y.append(bboxs)
