@@ -13,4 +13,4 @@ services:
       - ${PWD}/../model:/notebooks/model/
     environment:
       - PASSWORD=cychien
-    command: bash -c "pip3 install keras && /run_jupyter.sh --allow-root"
+    command: bash -c "pip3 install keras scikit-image && /run_jupyter.sh --allow-root"
