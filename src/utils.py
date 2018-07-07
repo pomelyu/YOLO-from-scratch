@@ -166,10 +166,14 @@ def convert_yolo_format(image, labels):
     converted = labels.copy()
     for label in converted:
         label[0] = CLASS_NAME[label[0]]
-        label[1] = "{:.0f}".format(label[1] * w)
-        label[2] = "{:.0f}".format(label[2] * h)
-        label[3] = "{:.0f}".format(label[3] * w)
-        label[4] = "{:.0f}".format(label[4] * h)
+        half_w = (label[3] * w) / 2
+        half_h = (label[4] * h) / 2
+        cx = label[1] * w
+        cy = label[2] * h
+        label[1] = "{:.0f}".format(cx - half_w)
+        label[2] = "{:.0f}".format(cy - half_h)
+        label[3] = "{:.0f}".format(cx + half_w)
+        label[4] = "{:.0f}".format(cy + half_h)
     
     return converted
 
