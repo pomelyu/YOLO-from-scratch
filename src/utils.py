@@ -1,6 +1,7 @@
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 import os
+import numpy as np
 from PIL import Image
 
 from .constants import YOLO1_CLASS, YOLO2_CLASS, CLASS_NAME, NUM_CLASS, MODEL_DIM
@@ -211,7 +212,7 @@ def data_generator(images_dir, batch_size=32):
         files = []
         for i in range(offset, min(offset+batch_size, m)):
             file_name = images[i].replace(".jpg", "")
-            image = utils.load_image(os.path.join(images_dir, images[i]))
+            image = load_image(os.path.join(images_dir, images[i]))
             
             X.append(np.asarray(image))
             files.append(file_name)
