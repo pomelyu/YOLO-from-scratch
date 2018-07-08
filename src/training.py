@@ -6,7 +6,7 @@ from .utils import load_image, isExtension
 from .image_transform import flip_image_horizontal, adjust_gamma, covert_to_VGG_input
 
         
-def generator_from_array(labels, images, batch_size=32, random_seed=0, vgg_input=True, argument_data=True):
+def generator_from_array(labels, images, batch_size=32, random_seed=0, vgg_input=True, argument_data=False):
     assert len(labels) == len(images)
     m = len(labels)
     
@@ -92,7 +92,6 @@ def train_valid_yolo(model, train_images_dirs, train_labels_dirs, valid_images_d
             valid_labels[valid_index],
             valid_images[valid_index],
             batch_size=batch_size,
-            argument_data=False,
             vgg_input=vgg_input)
 
         model.fit_generator(
@@ -116,7 +115,6 @@ def evaluate_yolo(model, images_dir, labels_dir, batch_size=32, vgg_input=True):
         test_labels,
         test_images,
         batch_size=batch_size,
-        argument_data=False,
         vgg_input=vgg_input)
     
     loss = model.evaluate_generator(test_generator, steps=(m // batch_size), verbose=1)

@@ -1,9 +1,11 @@
 import numpy as np
 import os
 from PIL import Image
+from skimage import io
 
-from .constants import MODEL_DIM, GRID_SIZE, CLASS_NAME, NUM_BOX, NUM_CLASS, YOLO1_CLASS, YOLO2_CLASS
+from .constants import MODEL_DIM, GRID_SIZE, CLASS_NAME, NUM_BOX, NUM_CLASS, YOLO1_CLASS, YOLO2_CLASS, GAMMA_MIN, GAMMA_MAX
 from .utils import load_image, load_labels, isExtension, yolo1_to_yolo_2
+from .image_transform import flip_image_horizontal, adjust_gamma
 
 def preprocess_image(image, model_dim):
     """ Resize image to required dimension and add necessary padding
@@ -99,3 +101,30 @@ def preprocess_data(imgs_path, labels_path, sav_imgs_path, save_labels_path):
         
         bboxs_name = "pre_" + labels[i][:labels[i].rindex(".")]
         np.save(os.path.join(save_labels_path, bboxs_name), bboxs)
+        
+        
+def argument_data(images_dir, labels_dir, images_out, labels_out, argument_size=5):
+    files = np.array([
+        label.replace(".npy", "") for label in os.listdir(labels_dir) if isExtension(label, ".npy")
+    ])
+    cwd = os.getcwd()
+    for file in files:
+        image = io.imread(os.path.join(cwd, images_dir, "{}.jpg".format(file)))
+        bboxs = np.load(os.path.join(cwd, labels_dir, "{}.npy".format(file)))
+
+        file_num = int(file[file.index("0"):])
+        for i in range(argument_size):
+            arg_image = np.copy(image)
+            arg_bboxs = np.copy(bboxs)
+            
+            np.random.seed(i + file_num)
+            rand_num = np.random.rand()
+            
+            if rand_num < 0.5:
+                arg_image, arg_bboxs = flip_image_horizontal(arg_image, arg_bboxs)
+                
+            gamma = GAMMA_MIN + rand_num * (GAMMA_MAX - GAMMA_MIN)
+            arg_image = adjust_gamma(arg_image, gamma)
+            
+            io.imsave(os.path.join(cwd, images_out, "{}_{}.jpg".format(file, i)), arg_image)
+            np.save(os.path.join(cwd, labels_out, "{}_{}.npy".format(file, i)), arg_bboxs)
