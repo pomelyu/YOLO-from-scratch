@@ -67,6 +67,7 @@ def train_valid_yolo(model, train_images_dirs, train_labels_dirs, valid_images_d
     m_train = len(train_labels)
     
     valid_labels = np.array([label for label in os.listdir(valid_labels_dir) if isExtension(label, ".npy")])
+    valid_labels.sort()
     m_valid = len(valid_labels)
     valid_images = apply_images_dir(valid_labels, valid_images_dir)
     valid_labels = apply_labels_dir(valid_labels, valid_labels_dir)
