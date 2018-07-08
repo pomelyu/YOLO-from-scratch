@@ -35,7 +35,7 @@ def generate_bboxs(labels, image, model_dim, grid_size, num_box, num_class):
         num_class: number of object class
 
     Returns:
-        bboxs: the numpy array with (grid_size, grid_size, num_box*(5+num_class))
+        bboxs: the numpy array with (grid_size, grid_size, num_box, 5+num_class)
     """
     img_size = image.size
     ratio = min(model_dim / img_size[0], model_dim / img_size[1])
@@ -68,17 +68,17 @@ def generate_bboxs(labels, image, model_dim, grid_size, num_box, num_class):
             obj_in_cells[cell_idx].append(obj)
 
     box_size = 5 + num_class
-    bboxs = np.zeros((grid_size, grid_size, num_box * box_size))
+    bboxs = np.zeros((grid_size, grid_size, num_box, box_size))
     for (i, j), objs in obj_in_cells.items():
         for idx, bbox in enumerate(objs):
             if idx > 1: break
 
-            bboxs[i][j][idx * box_size] = 1
-            bboxs[i][j][idx * box_size + 1] = bbox[1]
-            bboxs[i][j][idx * box_size + 2] = bbox[2]
-            bboxs[i][j][idx * box_size + 3] = bbox[3]
-            bboxs[i][j][idx * box_size + 4] = bbox[4]
-            bboxs[i][j][idx * box_size + 5 + bbox[0]] = 1
+            bboxs[i][j][idx][0] = 1
+            bboxs[i][j][idx][1] = bbox[1]
+            bboxs[i][j][idx][2] = bbox[2]
+            bboxs[i][j][idx][3] = bbox[3]
+            bboxs[i][j][idx][4] = bbox[4]
+            bboxs[i][j][idx][5 + bbox[0]] = 1
 
     return bboxs
 

@@ -89,7 +89,7 @@ def draw_bboxs(image, bboxs, threshold=0, show_grid=True, show_center=True):
 
     Arguments:
         image: the preprocessed image
-        bboxs: the numpy array with (grid_size, grid_size, num_box*(5+num_class))
+        bboxs: the numpy array with (grid_size, grid_size, num_box, 5+num_class)
         threshold: bounding box confidence threshold
 
     """
@@ -97,8 +97,8 @@ def draw_bboxs(image, bboxs, threshold=0, show_grid=True, show_center=True):
     ax = plt.gca()
     ax.imshow(image)
 
-    model_dim, _ = image.size
-    grid_size, _, _  = bboxs.shape
+    model_dim = image.size[0]
+    grid_size = bboxs.shape[0]
     cell_dim = model_dim / grid_size
 
     if show_grid:
@@ -108,19 +108,19 @@ def draw_bboxs(image, bboxs, threshold=0, show_grid=True, show_center=True):
 
     for i in range(grid_size):
         for j in range(grid_size):
-            bbox = bboxs[i][j]
-            box_size = len(bbox) / 2
-            for box_idx in range(2):
-                box_offset = int(box_idx * box_size)
-                if bbox[box_offset] <= threshold:
+            for box_idx in [0, 1]:
+                bbox = bboxs[i][j][box_idx]
+            
+                # Supress box with low confidence
+                if bbox[0] <= threshold:
                     continue
                 
-                class_index= bbox[box_offset + 5: box_offset + 5 + NUM_CLASS].argmax()
+                class_index= bbox[5: 5 + NUM_CLASS].argmax()
                 class_name = CLASS_NAME[class_index]
-                x = (i + bbox[box_offset + 1]) * cell_dim
-                y = (j + bbox[box_offset + 2]) * cell_dim
-                w = bbox[box_offset + 3] * model_dim
-                h = bbox[box_offset + 4] * model_dim
+                x = (i + bbox[1]) * cell_dim
+                y = (j + bbox[2]) * cell_dim
+                w = bbox[3] * model_dim
+                h = bbox[4] * model_dim
 
                 if show_center:
                     ax.annotate(class_name, xy=(x, y), color="white")

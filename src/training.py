@@ -17,7 +17,6 @@ def generator_from_array(labels, images, batch_size=32, random_seed=0, vgg_input
             image = np.array(load_image(images[i]))
             
             bboxs = np.load(labels[i])
-            bboxs = bboxs.reshape((GRID_SIZE, GRID_SIZE, NUM_BOX, -1))
             
             # Data argumentation
             if argument_data:
