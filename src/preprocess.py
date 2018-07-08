@@ -112,7 +112,7 @@ def argument_data(images_dir, labels_dir, images_out, labels_out, argument_size=
         image = io.imread(os.path.join(cwd, images_dir, "{}.jpg".format(file)))
         bboxs = np.load(os.path.join(cwd, labels_dir, "{}.npy".format(file)))
 
-        file_num = int(file[file.index("0"):])
+        file_num = int(file[file.rindex("_")+1:])
         for i in range(argument_size):
             arg_image = np.copy(image)
             arg_bboxs = np.copy(bboxs)
