@@ -147,4 +147,5 @@ Temporary Items
 data/
 
 # notebook used in development
-*/test.ipynb
+*/*.ipynb
+*/*.h5
