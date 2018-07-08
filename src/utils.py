@@ -5,6 +5,7 @@ import numpy as np
 from PIL import Image
 
 from .constants import YOLO1_CLASS, YOLO2_CLASS, CLASS_NAME, NUM_CLASS, MODEL_DIM
+from .image_transform import covert_to_VGG_input
 
 def load_image(image_path):
     """ load image from file
@@ -207,7 +208,7 @@ def convert_box_to_original(image, bboxs, model_dim):
         
     return converted
 
-def data_generator(images_dir, batch_size=32):
+def data_generator(images_dir, batch_size=32, vgg_input=False):
     images = [image for image in os.listdir(images_dir) if isExtension(image, ".jpg")]
     
     m = len(images)
@@ -216,9 +217,12 @@ def data_generator(images_dir, batch_size=32):
         files = []
         for i in range(offset, min(offset+batch_size, m)):
             file_name = images[i].replace(".jpg", "")
-            image = load_image(os.path.join(images_dir, images[i]))
+            image = np.array(load_image(os.path.join(images_dir, images[i])))
+
+            if vgg_input:
+                image = covert_to_VGG_input(image)
             
-            X.append(np.asarray(image))
+            X.append(image)
             files.append(file_name)
             
         X = np.stack(X, axis=0)
