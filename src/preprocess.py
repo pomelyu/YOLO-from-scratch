@@ -128,3 +128,17 @@ def argument_data(images_dir, labels_dir, images_out, labels_out, argument_size=
             
             io.imsave(os.path.join(cwd, images_out, "{}_{}.jpg".format(file, i)), arg_image)
             np.save(os.path.join(cwd, labels_out, "{}_{}.npy".format(file, i)), arg_bboxs)
+            
+def flip_image(images_dir, labels_dir, images_out, labels_out):
+    files = np.array([
+        label.replace(".npy", "") for label in os.listdir(labels_dir) if isExtension(label, ".npy")
+    ])
+    cwd = os.getcwd()
+    for file in files:
+        image = io.imread(os.path.join(cwd, images_dir, "{}.jpg".format(file)))
+        bboxs = np.load(os.path.join(cwd, labels_dir, "{}.npy".format(file)))
+
+        image, bboxs = flip_image_horizontal(image, bboxs)
+
+        io.imsave(os.path.join(cwd, images_out, "{}_flip.jpg".format(file)), image)
+        np.save(os.path.join(cwd, labels_out, "{}_flip.npy".format(file)), bboxs)    
