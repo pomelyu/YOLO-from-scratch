@@ -41,8 +41,18 @@ y_pred = [0.01 ,  0.1,  0.2,  0.2,  0.2,   1,   0, ... , 0]
 程式碼部分可以參考 `src/loss.py` 中的 `create_yolo_loss`
 
 
+### Model：based on VGG16
+由於直接訓練一個重頭建立的模型太花費時間，因此在深度學習中常常將已經建立好的模型當作基底，往上增加。可以想成這些已經建立好的模型預先幫後面的網路先做好 feature extraction，以利於後續的學習。這裡我利用 vgg 當作基底，往上增加。
+
+- yolo_vgg_2: 由於原始的 vgg 輸入層為 (224, 224, 3)，因此採用自訂的輸入層接到 vgg 的第二層，並去除後面的 FC 層。讓 vgg 是可以被訓練的。
+- yolo_vgg_3: 直接利用 vgg 的輸入層，但根據 vgg 的原始論文，輸入需要改成 BGR 的順序，並減去平均值，這個模型可訓練的部分只有 vgg 後面的網路。
+
 ### Training and Result
 
-目前訓練的方式是對每個 epoch 隨機對訓練資料作 shuffle，並以 batch size=32 為單位利用 adam 更新權重，執行 60 epochs 利用 GPU 花了兩小時後，可以得到約 0.49 的 train_loss，但在測試資料上 test_loss 約為 8.77。表示此模型確實可以逼近真正的 target function，但是有嚴重的 overfitting，未來必須針對這一點加上 Regularization 和使用 data argument 增加訓練資料。
+目前利用 VOC2007 和 VOC2012 的訓練資料作訓練，以 VOC2007 的測試資料作驗證，並在預處理時加上水平翻轉，因此總共的訓練影像數目約為 22000 張，驗證約為 5000 張。訓練時將全部的資料作 shuffle 並以 batch gradient descent(batch_size=64) 的方式訓練。
+
+目前最好的結果利用 yolo_vgg2 的模型，可以得到 train loss ~ 2.19 時 valid loss ~ 4.24，兩者對應的 mAP 分別為 33.20% 與 17.04%，不算是足夠好的結果（Paper 中的 Fast Yolo 可以到 mAP ~ 52.7% 左右，YOLO 則有 63.4%），而且有嚴重的 overfitting，即便模型本身的 batch normalization 已經有一點 regularization 的效果，即使嘗試加上 L2 regularizer 後的的結果還是很不理想，問題應該出在訓練的資料還是太少（原始 11000 張，相當於每個物件類別只有 500 張），但利用 data argumentation 的方式增加訓練的資料量又會導致每次訓練的時間拉長，需要更好的運算資源才能處理。
+
+![](./images/result.png)
 
 [Back](../README.md)
