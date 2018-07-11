@@ -2,15 +2,17 @@ version: '3'
 
 services:
   nb-server:
+    container_name: nb-server
     image: tensorflow/tensorflow:latest-gpu-py3
     ports:
       - "8888:8888"
       - "6006:6006"
     volumes:
+      - ${PWD}/requirement:/requirement/
       - ${PWD}/../notebooks:/notebooks/nbs/
       - ${PWD}/../data:/notebooks/data/
       - ${PWD}/../src:/notebooks/src/
       - ${PWD}/../model:/notebooks/model/
     environment:
       - PASSWORD=cychien
-    command: bash -c "pip3 install keras scikit-image && /run_jupyter.sh --allow-root"
+    command: bash -c "pip3 install -r /requirement/requirement.txt && /run_jupyter.sh --allow-root"

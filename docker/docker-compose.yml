@@ -3,19 +3,16 @@ version: '3'
 services:
   nb-server:
     container_name: nb-server
-    image: jupyter/tensorflow-notebook:latest
+    image: tensorflow/tensorflow:latest-py3
     ports:
       - "8888:8888"
+      - "6006:6006"
     volumes:
-      - ${PWD}/../notebooks:/home/jovyan/nbs/
-      - ${PWD}/../data:/home/jovyan/data/
-      - ${PWD}/../src:/home/jovyan/src/
-      - ${PWD}/../model:/home/jovyan/model
-    user: root
+      - ${PWD}/requirement:/requirement/
+      - ${PWD}/../notebooks:/notebooks/nbs/
+      - ${PWD}/../data:/notebooks/data/
+      - ${PWD}/../src:/notebooks/src/
+      - ${PWD}/../model:/notebooks/model/
     environment:
-      - NB_UID=1001
-    entrypoint:
-      - start.sh
-    command:
-      - jupyter lab
-      - --NotebookApp.token=''
+      - PASSWORD=cychien
+    command: bash -c "pip3 install -r /requirement/requirement.txt && /run_jupyter.sh --allow-root"
