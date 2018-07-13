@@ -38,8 +38,8 @@ Navigate to [localhost:8888](localhost:8888), password is defined as `PASSWORD` 
 - [x] postprocess: based on [Coursera CNN](https://www.coursera.org/learn/convolutional-neural-networks/home/welcome)
 - [x] document:
 - [x] data argumentation: Flip
-- [ ] cross validation
-- [ ] data argumentation: HSV transform
+- [x] data argumentation: Gamma transform
+- [x] data argumentation: scale and translation
 - [ ] deepest neural network
 - [ ] YOLO3 anchor box and loss function
 
