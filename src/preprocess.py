@@ -3,9 +3,10 @@ import os
 from skimage import io
 from skimage import transform
 
-from .constants import MODEL_DIM, GRID_SIZE, CLASS_NAME, NUM_BOX, NUM_CLASS, YOLO1_CLASS, YOLO2_CLASS, GAMMA_MIN, GAMMA_MAX
+from .constants import MODEL_DIM, GRID_SIZE, CLASS_NAME, NUM_BOX, NUM_CLASS, YOLO1_CLASS, YOLO2_CLASS, \
+    GAMMA_MIN, GAMMA_MAX, SCALE_MIN, SCALE_MAX, TRANS_MIN, TRANS_MAX
 from .utils import load_image, load_labels, isExtension, yolo1_to_yolo_2
-from .image_transform import flip_image_horizontal, adjust_gamma
+from .image_transform import flip_image_horizontal, adjust_gamma, translation_and_scale_image
 
 def scale_image_with_padding(image, label, model_dim):
     """ Resize image to required dimension with necessary padding and adjust the label coordinates
@@ -110,21 +111,28 @@ def preprocess_data(imgs_dir, labels_dir, imgs_out, label_out, arg_factor=1):
         flip_val = np.random.permutation(arg_factor) > (arg_factor // 2)
         np.random.seed(idx+1)
         gamma_val = np.random.permutation(arg_factor) * ((GAMMA_MAX - GAMMA_MIN) / arg_factor) + GAMMA_MIN
+        np.random.seed(idx+2)
+        scale_val = np.random.permutation(arg_factor) * ((SCALE_MAX - SCALE_MIN) / arg_factor) + SCALE_MIN
+        np.random.seed(idx+3)
+        dx_val = np.random.permutation(arg_factor) * ((TRANS_MAX - TRANS_MIN) / arg_factor) + TRANS_MIN
+        np.random.seed(idx+4)
+        dy_val = np.random.permutation(arg_factor) * ((TRANS_MAX - TRANS_MIN) / arg_factor) + TRANS_MIN
 
         for i in range(arg_factor):
-            arg_image, arg_label = argument_image(image, label, flip=flip_val[i], gamma=gamma_val[i])
+            arg_image, arg_label = argument_image(image, label, 
+                flip=flip_val[i], gamma=gamma_val[i], s=scale_val[i], dx=dx_val[i], dy=dy_val[i])
             bboxs = generate_bboxs(arg_label, MODEL_DIM, GRID_SIZE, NUM_BOX, NUM_CLASS)
-
             io.imsave(os.path.join(imgs_out, "{}_{:0>2d}.jpg".format(fil_name, i)), arg_image)
             np.save(os.path.join(label_out, "{}_{:0>2d}.npy".format(fil_name, i)), bboxs)
 
 
-def argument_image(image, label, seed=0, flip=False, gamma=1):
+def argument_image(image, label, seed=0, flip=False, gamma=1, s=1, dx=0, dy=0):
     arg_image = np.copy(image)
     arg_label = np.copy(label) 
 
     if flip:
         arg_image, arg_label = flip_image_horizontal(arg_image, arg_label)
+    arg_image, arg_label = translation_and_scale_image(arg_image, arg_label, s, dx, dy)
     arg_image = adjust_gamma(arg_image, gamma)
 
     return arg_image, arg_label
