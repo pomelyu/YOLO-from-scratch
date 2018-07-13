@@ -2,6 +2,7 @@ import numpy as np
 import os
 from PIL import Image
 from skimage import io
+from skimage import transform
 
 from .constants import MODEL_DIM, GRID_SIZE, CLASS_NAME, NUM_BOX, NUM_CLASS, YOLO1_CLASS, YOLO2_CLASS, GAMMA_MIN, GAMMA_MAX
 from .utils import load_image, load_labels, isExtension, yolo1_to_yolo_2
@@ -14,14 +15,16 @@ def preprocess_image(image, model_dim):
         image: PIL image object
         model_dim: the required dimension
     """
-    img_size = image.size
-    ratio = min(model_dim / img_size[0], model_dim / img_size[1])
-    new_w = int(img_size[0] * ratio)
-    new_h = int(img_size[1] * ratio)
-    resized = image.resize((new_w, new_h), Image.ANTIALIAS)
-
-    padded = Image.new("RGB", (model_dim, model_dim))
-    padded.paste(resized, box=((model_dim-new_w) // 2, (model_dim-new_h) // 2))
+    h, w, _ = image.shape
+    ratio = min(model_dim / w, model_dim / h)
+    new_w = int(w * ratio)
+    new_h = int(h * ratio)
+    resized = transform.resize(image, (new_h, new_w), mode="constant", anti_aliasing=True)
+    
+    padded = np.zeros((model_dim, model_dim, 3))
+    pad_h = (model_dim-new_h) // 2
+    pad_w = (model_dim-new_w) // 2
+    padded[pad_h:pad_h+new_h, pad_w:pad_w+new_w, :] = resized
     
     return padded
 
@@ -39,10 +42,10 @@ def generate_bboxs(labels, image, model_dim, grid_size, num_box, num_class):
     Returns:
         bboxs: the numpy array with (grid_size, grid_size, num_box, 5+num_class)
     """
-    img_size = image.size
-    ratio = min(model_dim / img_size[0], model_dim / img_size[1])
-    new_w = int(img_size[0] * ratio)
-    new_h = int(img_size[1] * ratio)
+    h, w, _ = image.shape
+    ratio = min(model_dim / w, model_dim / h)
+    new_w = int(w * ratio)
+    new_h = int(h * ratio)
 
     obj_in_cells = {}
     for label in labels:
@@ -94,7 +97,7 @@ def preprocess_data(imgs_path, labels_path, sav_imgs_path, save_labels_path):
         preprocessed = preprocess_image(image, MODEL_DIM)
         
         image_name = "pre_" + image_name
-        preprocessed.save(os.path.join(sav_imgs_path, image_name))
+        io.imsave(os.path.join(sav_imgs_path, image_name), preprocessed)
         
         label = load_labels(os.path.join(labels_path, labels[i]))
         bboxs = generate_bboxs(label, image, MODEL_DIM, GRID_SIZE, NUM_BOX, NUM_CLASS)

@@ -2,7 +2,7 @@ import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 import os
 import numpy as np
-from PIL import Image
+from skimage import io
 
 from .constants import YOLO1_CLASS, YOLO2_CLASS, CLASS_NAME, NUM_CLASS, MODEL_DIM
 from .image_transform import covert_to_VGG_input
@@ -13,16 +13,16 @@ def load_image(image_path):
     image_path: relative path of the image
 
     Return:
-    image: PIL image object
+    image: ndarray
     """
     if os.path.isabs(image_path):
         path = image_path
     else:
         cwd = os.getcwd()
         path = os.path.join(cwd, image_path)
-    img = Image.open(path)
+    image = io.imread(path)
 
-    return img
+    return image
 
 
 def load_labels(label_path):
@@ -78,7 +78,7 @@ def visualize_label(image_path, label_path):
     ax.set_title(image_path)
     ax.imshow(img)
     
-    w, h = img.size
+    h, w, _ = img.shape
     for label in labels:
         class_name = YOLO1_CLASS[label[0]]
         draw_label_rect(class_name, label[1] * w, label[2] * h, label[3] * w, label[4] * h, ax)
@@ -98,7 +98,7 @@ def draw_bboxs(image, bboxs, threshold=0, show_grid=True, show_center=True):
     ax = plt.gca()
     ax.imshow(image)
 
-    model_dim = image.size[0]
+    model_dim = image.shape[0]
     grid_size = bboxs.shape[0]
     cell_dim = model_dim / grid_size
 
@@ -163,7 +163,7 @@ def yolo1_to_yolo_2(yolo1_class_index):
     return YOLO2_CLASS.index(name)
 
 def convert_yolo_format(image, labels):
-    w, h = image.size
+    h, w = image.shape
     converted = labels.copy()
     for label in converted:
         label[0] = CLASS_NAME[label[0]]
@@ -191,10 +191,10 @@ def convert_yolo_labels(images_dir, labels_dir, target_dir):
                 fout.write(" ".join(converted_label) + "\n")
                 
 def convert_box_to_original(image, bboxs, model_dim):
-    img_size = image.size
-    ratio = min(model_dim / img_size[0], model_dim / img_size[1])
-    new_w = int(img_size[0] * ratio)
-    new_h = int(img_size[1] * ratio)
+    h, w = image.shape
+    ratio = min(model_dim / w, model_dim / h)
+    new_w = int(w * ratio)
+    new_h = int(h * ratio)
     
     converted = []
     for bbox in bboxs:

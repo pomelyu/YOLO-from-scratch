@@ -14,7 +14,7 @@ def generator_from_array(labels, images, batch_size=32, random_seed=0, vgg_input
         X = []
         Y = []
         for i in range(offset, min(offset+batch_size, m)):
-            image = np.array(load_image(images[i]))
+            image = load_image(images[i])
             
             bboxs = np.load(labels[i])
             
