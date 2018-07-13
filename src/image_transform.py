@@ -2,6 +2,11 @@ import numpy as np
 from skimage import exposure
 from skimage import transform
 
+def histogram_equalization(image):
+    p2, p98 = np.percentile(image, (2, 98))
+    image = exposure.rescale_intensity(image, in_range=(p2, p98))
+    return image
+
 def flip_image_horizontal(image, label):
     image = image[:, ::-1, :]
     label[:, 1] = 1 - label[:, 1] # cx
@@ -9,6 +14,8 @@ def flip_image_horizontal(image, label):
 
 
 def adjust_gamma(image, gamma):
+    p2, p98 = np.percentile(image, (2, 98))
+    image = exposure.rescale_intensity(image, in_range=(p2, p98))
     image = exposure.adjust_gamma(image, gamma)
     
     return image

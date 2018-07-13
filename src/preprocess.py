@@ -6,7 +6,7 @@ from skimage import transform
 from .constants import MODEL_DIM, GRID_SIZE, CLASS_NAME, NUM_BOX, NUM_CLASS, YOLO1_CLASS, YOLO2_CLASS, \
     GAMMA_MIN, GAMMA_MAX, SCALE_MIN, SCALE_MAX, TRANS_MIN, TRANS_MAX
 from .utils import load_image, load_labels, isExtension, yolo1_to_yolo_2
-from .image_transform import flip_image_horizontal, adjust_gamma, translation_and_scale_image
+from .image_transform import histogram_equalization, flip_image_horizontal, adjust_gamma, translation_and_scale_image
 
 def scale_image_with_padding(image, label, model_dim):
     """ Resize image to required dimension with necessary padding and adjust the label coordinates
@@ -98,8 +98,9 @@ def preprocess_data(imgs_dir, labels_dir, imgs_out, label_out, arg_factor=1):
         image = load_image(os.path.join(imgs_dir, "{}.jpg".format(fil_name)))
         label = load_labels(os.path.join(labels_dir, "{}.txt".format(fil_name)))
 
+        image = histogram_equalization(image)
         image, label = scale_image_with_padding(image, label, MODEL_DIM)
-
+        
         # Without argumentation
         if arg_factor == 1:
             bboxs = generate_bboxs(label, MODEL_DIM, GRID_SIZE, NUM_BOX, NUM_CLASS)
