@@ -89,7 +89,7 @@ def generate_bboxs(labels, model_dim, grid_size, num_box, num_class):
 
 
 
-def preprocess_data(imgs_dir, labels_dir, imgs_out, label_out, arg_factor=5):
+def preprocess_data(imgs_dir, labels_dir, imgs_out, label_out, arg_factor=1):
     labels = [label for label in os.listdir(labels_dir) if isExtension(label, ".txt")]
 
     for idx in range(len(labels)):
@@ -98,6 +98,14 @@ def preprocess_data(imgs_dir, labels_dir, imgs_out, label_out, arg_factor=5):
         label = load_labels(os.path.join(labels_dir, "{}.txt".format(fil_name)))
 
         image, label = scale_image_with_padding(image, label, MODEL_DIM)
+
+        # Without argumentation
+        if arg_factor == 1:
+            bboxs = generate_bboxs(label, MODEL_DIM, GRID_SIZE, NUM_BOX, NUM_CLASS)
+            io.imsave(os.path.join(imgs_out, "pre_{}.jpg".format(fil_name)), image)
+            np.save(os.path.join(label_out, "pre_{}.npy".format(fil_name)), bboxs)
+        
+        # With argumentation
         for i in range(arg_factor):
             arg_image, arg_label = argument_image(image, label, seed=i*idx, flip=True, gamma=True)
             bboxs = generate_bboxs(arg_label, MODEL_DIM, GRID_SIZE, NUM_BOX, NUM_CLASS)
