@@ -1,12 +1,11 @@
 import numpy as np
 from skimage import exposure
 
-def flip_image_horizontal(image, bbox):
-    image = np.flip(image, axis=1)
-    bbox = np.flip(bbox, axis=0)
-    bbox[:, :, :, 1] = 1 - bbox[:, :, :, 1]
-    
-    return image, bbox
+def flip_image_horizontal(image, label):
+    image = image[:, ::-1, :]
+    label[:, 1] = 1 - label[:, 1] # cx
+    return image, label
+
 
 def adjust_gamma(image, gamma):
     image = exposure.adjust_gamma(image, gamma)
