@@ -106,26 +106,25 @@ def preprocess_data(imgs_dir, labels_dir, imgs_out, label_out, arg_factor=1):
             np.save(os.path.join(label_out, "pre_{}.npy".format(fil_name)), bboxs)
         
         # With argumentation
+        np.random.seed(idx)
+        flip_val = np.random.permutation(arg_factor) > (arg_factor // 2)
+        np.random.seed(idx+1)
+        gamma_val = np.random.permutation(arg_factor) * ((GAMMA_MAX - GAMMA_MIN) / arg_factor) + GAMMA_MIN
+
         for i in range(arg_factor):
-            arg_image, arg_label = argument_image(image, label, seed=i*idx, flip=True, gamma=True)
+            arg_image, arg_label = argument_image(image, label, flip=flip_val[i], gamma=gamma_val[i])
             bboxs = generate_bboxs(arg_label, MODEL_DIM, GRID_SIZE, NUM_BOX, NUM_CLASS)
 
             io.imsave(os.path.join(imgs_out, "{}_{:0>2d}.jpg".format(fil_name, i)), arg_image)
             np.save(os.path.join(label_out, "{}_{:0>2d}.npy".format(fil_name, i)), bboxs)
 
 
-def argument_image(image, label, seed=0, flip=True, gamma=True):
+def argument_image(image, label, seed=0, flip=False, gamma=1):
     arg_image = np.copy(image)
     arg_label = np.copy(label) 
 
-    np.random.seed(seed)
-    rand_num = np.random.rand()
-
-    if flip and rand_num < 0.5:
+    if flip:
         arg_image, arg_label = flip_image_horizontal(arg_image, arg_label)
-
-    if gamma:
-        gamma = GAMMA_MIN + rand_num * (GAMMA_MAX - GAMMA_MIN)
-        arg_image = adjust_gamma(arg_image, gamma)
+    arg_image = adjust_gamma(arg_image, gamma)
 
     return arg_image, arg_label
