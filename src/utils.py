@@ -48,7 +48,7 @@ def load_labels(label_path):
             obj[0] = int(obj[0])
             labels.append(obj)
 
-    return labels
+    return np.array(labels)
 
 def draw_label_rect(name, cx, cy, w, h, ax, color="blue"):
     x = cx - (w / 2)
@@ -80,7 +80,7 @@ def visualize_label(image_path, label_path):
     
     h, w, _ = img.shape
     for label in labels:
-        class_name = YOLO1_CLASS[label[0]]
+        class_name = YOLO1_CLASS[int(label[0])]
         draw_label_rect(class_name, label[1] * w, label[2] * h, label[3] * w, label[4] * h, ax)
 
     plt.show()
@@ -164,7 +164,7 @@ def yolo1_to_yolo_2(yolo1_class_index):
 
 def convert_yolo_format(image, labels):
     h, w = image.shape
-    converted = labels.copy()
+    converted = np.copy(labels)
     for label in converted:
         label[0] = CLASS_NAME[label[0]]
         half_w = (label[3] * w) / 2
