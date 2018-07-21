@@ -78,6 +78,8 @@ def generate_bboxs(labels, model_dim, grid_size, num_box, num_class):
     for (i, j), objs in obj_in_cells.items():
         for idx, bbox in enumerate(objs):
             if idx > 1: break
+            if i < 0 or i >= grid_size: break
+            if j < 0 or j >= grid_size: break
 
             bboxs[i][j][idx][0] = 1
             bboxs[i][j][idx][1] = bbox[1]
