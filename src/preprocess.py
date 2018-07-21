@@ -108,6 +108,7 @@ def preprocess_data(imgs_dir, labels_dir, imgs_out, label_out, arg_factor=1):
             bboxs = generate_bboxs(label, MODEL_DIM, GRID_SIZE, NUM_BOX, NUM_CLASS)
             io.imsave(os.path.join(imgs_out, "pre_{}.jpg".format(fil_name)), image)
             np.save(os.path.join(label_out, "pre_{}.npy".format(fil_name)), bboxs)
+            continue
         
         # With argumentation
         np.random.seed(idx)
