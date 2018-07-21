@@ -163,10 +163,10 @@ def yolo1_to_yolo_2(yolo1_class_index):
     return YOLO2_CLASS.index(name)
 
 def convert_yolo_format(image, labels):
-    h, w = image.shape
-    converted = np.copy(labels)
+    h, w, _ = image.shape
+    converted = labels.tolist()
     for label in converted:
-        label[0] = CLASS_NAME[label[0]]
+        label[0] = CLASS_NAME[int(label[0])]
         half_w = (label[3] * w) / 2
         half_h = (label[4] * h) / 2
         cx = label[1] * w
@@ -191,7 +191,7 @@ def convert_yolo_labels(images_dir, labels_dir, target_dir):
                 fout.write(" ".join(converted_label) + "\n")
                 
 def convert_box_to_original(image, bboxs, model_dim):
-    h, w = image.shape
+    h, w, _ = image.shape
     ratio = min(model_dim / w, model_dim / h)
     new_w = int(w * ratio)
     new_h = int(h * ratio)
