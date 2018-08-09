@@ -208,7 +208,7 @@ def convert_box_to_original(image, bboxs, model_dim):
         
     return converted
 
-def data_generator(images_dir, batch_size=32, vgg_input=False):
+def data_generator(images_dir, batch_size=32, vgg_input=False, normalized=False):
     images = [image for image in os.listdir(images_dir) if isExtension(image, ".jpg")]
     
     m = len(images)
@@ -221,6 +221,8 @@ def data_generator(images_dir, batch_size=32, vgg_input=False):
 
             if vgg_input:
                 image = covert_to_VGG_input(image)
+            if normalized:
+                image = image / 255
             
             X.append(image)
             files.append(file_name)

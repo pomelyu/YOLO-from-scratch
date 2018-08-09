@@ -6,7 +6,7 @@ from .utils import load_image, isExtension
 from .image_transform import flip_image_horizontal, adjust_gamma, covert_to_VGG_input
 
         
-def generator_from_array(labels, images, batch_size=32, random_seed=0, vgg_input=False, argument_data=False):
+def generator_from_array(labels, images, batch_size=32, random_seed=0, vgg_input=False, argument_data=False, normalized=False):
     assert len(labels) == len(images)
     m = len(labels)
     
@@ -32,6 +32,8 @@ def generator_from_array(labels, images, batch_size=32, random_seed=0, vgg_input
             # convert image to vgg format
             if vgg_input:
                 image = covert_to_VGG_input(image)
+            if normalized:
+                image = image / 255
 
             X.append(np.asarray(image))
             Y.append(bboxs)
@@ -41,7 +43,7 @@ def generator_from_array(labels, images, batch_size=32, random_seed=0, vgg_input
         
         yield X, Y
 
-def train_valid_yolo(model, train_images_dirs, train_labels_dirs, valid_images_dir, valid_labels_dir, valid_ratio=0.2, batch_size=32, epochs=10, epoch_begin=0, vgg_input=False):
+def train_valid_yolo(model, train_images_dirs, train_labels_dirs, valid_images_dir, valid_labels_dir, valid_ratio=0.2, batch_size=32, epochs=10, epoch_begin=0, vgg_input=False, normalized=False):
     apply_labels_dir = np.vectorize(lambda label, labels_dir: os.path.join(labels_dir, label))
     apply_images_dir = np.vectorize(lambda label, images_dir: os.path.join(images_dir, label.replace(".npy", ".jpg")))
     
@@ -87,13 +89,15 @@ def train_valid_yolo(model, train_images_dirs, train_labels_dirs, valid_images_d
             train_images[train_index], 
             batch_size=batch_size, 
             random_seed=random_seed,
-            vgg_input=vgg_input)
+            vgg_input=vgg_input,
+            normalized=normalized)
         
         valid_generator = generator_from_array(
             valid_labels[valid_index],
             valid_images[valid_index],
             batch_size=batch_size,
-            vgg_input=vgg_input)
+            vgg_input=vgg_input,
+            normalized=normalized)
 
         model.fit_generator(
             train_generator,
@@ -102,7 +106,7 @@ def train_valid_yolo(model, train_images_dirs, train_labels_dirs, valid_images_d
             validation_steps=(len(valid_index) // batch_size))
         
 
-def evaluate_yolo(model, images_dir, labels_dir, batch_size=32, vgg_input=False):
+def evaluate_yolo(model, images_dir, labels_dir, batch_size=32, vgg_input=False, normalized=False):
     test_labels = np.array([label for label in os.listdir(labels_dir) if isExtension(label, ".npy")])
     m = len(test_labels)
     
@@ -116,7 +120,8 @@ def evaluate_yolo(model, images_dir, labels_dir, batch_size=32, vgg_input=False)
         test_labels,
         test_images,
         batch_size=batch_size,
-        vgg_input=vgg_input)
+        vgg_input=vgg_input,
+        normalized=normalized)
     
     loss = model.evaluate_generator(test_generator, steps=(m // batch_size), verbose=1)
     print("Evaluation loss:", loss)
