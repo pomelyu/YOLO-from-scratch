@@ -11,7 +11,8 @@ def create_yolo1_loss(lambda_coord=5, lambda_noobj=0.5):
         loss_y = tf.square(y_true[:, :, :, :, 2] - y_pred[:, :, :, :, 2])
         loss_w = tf.square(tf.sqrt(y_true[:, :, :, :, 3]) - tf.sqrt(y_pred[:, :, :, :, 3]))
         loss_h = tf.square(tf.sqrt(y_true[:, :, :, :, 4]) - tf.sqrt(y_pred[:, :, :, :, 4]))
-        loss_class = tf.reduce_sum(tf.square(y_true[:, :, :, :, 5:] - y_pred[:, :, :, :, 5:]), axis=-1)
+        loss_class = tf.reduce_sum(-1 * y_true[:, :, :, :, 5:] * tf.log(y_pred[:, :, :, :, 5:]), axis=-1)
+#         loss_class = tf.reduce_sum(tf.square(y_true[:, :, :, :, 5:] - y_pred[:, :, :, :, 5:]), axis=-1)
         
         loss_bbox = tf.reduce_sum(lc * obj_mask * (loss_x + loss_y + loss_w + loss_h))
         loss_conf = tf.reduce_sum(obj_mask * loss_c) + tf.reduce_sum(ln * (1 - obj_mask) * loss_c)
