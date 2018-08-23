@@ -15,13 +15,13 @@ def split_bbox(Y):
         boxes: [m, GRID_SIZE, GRID_SIZE, NUM_BOX, 4] tensor - bbox dimension in cell corrdinates
         box_class_probs: [m, GRID_SIZE, GRID_SIZE, NUM_BOX, NUM_CLASS] tensor
     """
-    box_confidence = Y[:, :, :, 0:1]
+    box_confidence = tf.sigmoid(Y[:, :, :, 0:1])
     boxes = Y[:, :, :, 1:5]
-    box_class_probs = Y[:, :, :, 5:]
+    box_class_probs = tf.nn.softmax(Y[:, :, :, 5:], axis=-1)
     
     return box_confidence, boxes, box_class_probs
 
-def bbox_cell_to_global(boxes):
+def bbox_cell_to_global(boxes, anchors):
     """ Covert bbox from cell coordinates(centeor) to image coordinates(corner) to perform non_maximum_supress
     
     Argumens:
@@ -36,25 +36,35 @@ def bbox_cell_to_global(boxes):
     #   2, 2, ... , 2],
     #   ...
     #   6, 6, ... , 6]]
-    cell_offset_x = tf.reshape(tf.constant(
-        np.tile(np.array(range(GRID_SIZE)).reshape((-1, 1)), (1, GRID_SIZE)),
-        dtype="float32"), [GRID_SIZE, GRID_SIZE, 1, 1])
-
-    cell_offset_y = tf.reshape(tf.constant(
-        np.tile(np.array(range(GRID_SIZE)), (GRID_SIZE, 1)),
-        dtype="float32"), [GRID_SIZE, GRID_SIZE, 1, 1])
+    grids = np.arange(GRID_SIZE)
+    cell_x = tf.constant(
+        np.tile(grids.reshape((-1, 1)), (1, GRID_SIZE)).reshape((GRID_SIZE, GRID_SIZE, 1)),
+        dtype="float32"
+    )
+    cell_y = tf.constant(
+        np.tile(grids, (GRID_SIZE, 1)).reshape((GRID_SIZE, GRID_SIZE, 1)),
+        dtype="float32"
+    )
+    anchor_w = tf.constant(
+        np.tile(anchors[:, 0], (GRID_SIZE, GRID_SIZE, 1)),
+        dtype="float32"
+    )
+    anchor_h = tf.constant(
+        np.tile(anchors[:, 1], (GRID_SIZE, GRID_SIZE, 1)),
+        dtype="float32"
+    )
     
-    center_x = (boxes[:, :, :, 0:1] + cell_offset_x) / GRID_SIZE
-    center_y = (boxes[:, :, :, 1:2] + cell_offset_y) / GRID_SIZE
-    half_w = boxes[:, :, :, 2:3] / 2
-    half_h = boxes[:, :, :, 3:4] / 2
+    center_x = (tf.sigmoid(boxes[..., 0]) + cell_x) / GRID_SIZE
+    center_y = (tf.sigmoid(boxes[..., 1]) + cell_y) / GRID_SIZE
+    half_w = anchor_w * tf.exp(boxes[..., 2]) / 2
+    half_h = anchor_h * tf.exp(boxes[..., 3]) / 2
     
     corner_x1 = center_x - half_w
     corner_y1 = center_y - half_h
     corner_x2 = center_x + half_w
     corner_y2 = center_y + half_h
     
-    return tf.concat([corner_x1, corner_y1, corner_x2, corner_y2], axis=-1)
+    return tf.stack([corner_x1, corner_y1, corner_x2, corner_y2], axis=-1)
 
 
 def filter_bbox_by_scores(box_confidence, boxes, box_class_probs, threshold=0.6):

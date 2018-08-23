@@ -3,7 +3,7 @@ import numpy as np
 from keras.callbacks import ModelCheckpoint
 
 from .constants import GRID_SIZE, NUM_BOX, GAMMA_MIN, GAMMA_MAX
-from .utils import load_image, isExtension
+from .io import load_image
 from .image_transform import flip_image_horizontal, adjust_gamma, covert_to_VGG_input
 
         
@@ -42,7 +42,7 @@ def train_valid_yolo(model, train_images_dir, train_labels_dir, valid_images_dir
     apply_images_dir = np.vectorize(lambda label, images_dir: os.path.join(images_dir, label.replace(".npy", ".jpg")))
     
     # Training Generator
-    train_labels = np.array([label for label in os.listdir(train_labels_dir) if isExtension(label, ".npy")])
+    train_labels = np.array([label for label in os.listdir(train_labels_dir) if label.endswith(".npy")])
     train_images = apply_images_dir(train_labels, train_images_dir)
     train_labels = apply_labels_dir(train_labels, train_labels_dir)
     m_train = len(train_labels)
@@ -55,7 +55,7 @@ def train_valid_yolo(model, train_images_dir, train_labels_dir, valid_images_dir
         normalized=normalized)
 
     # Validation Generator
-    valid_labels = np.array([label for label in os.listdir(valid_labels_dir) if isExtension(label, ".npy")])
+    valid_labels = np.array([label for label in os.listdir(valid_labels_dir) if label.endswith(".npy")])
     valid_images = apply_images_dir(valid_labels, valid_images_dir)
     valid_labels = apply_labels_dir(valid_labels, valid_labels_dir)
     m_valid = len(valid_labels)
@@ -84,7 +84,7 @@ def train_valid_yolo(model, train_images_dir, train_labels_dir, valid_images_dir
         
 
 def evaluate_yolo(model, images_dir, labels_dir, batch_size=32, vgg_input=False, normalized=False):
-    test_labels = np.array([label for label in os.listdir(labels_dir) if isExtension(label, ".npy")])
+    test_labels = np.array([label for label in os.listdir(labels_dir) if label.endswith(".npy")])
     m = len(test_labels)
     
     apply_labels_dir = np.vectorize(lambda label, labels_dir: os.path.join(labels_dir, label))
