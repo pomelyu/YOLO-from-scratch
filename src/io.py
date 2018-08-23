@@ -54,8 +54,12 @@ def save_class_label(labels, image_shape, classes, path):
     h, w = image_shape
     with open(path, "w") as fout:
         for label in labels:
+            cx = label[2] * w
+            cy = label[3] * h
+            w2 = (label[4] * w) // 2
+            h2 = (label[5] * h) // 2
             fout.write("{} {:.4f} {:.0f} {:.0f} {:.0f} {:.0f}\n".format(
-                classes[int(label[1])], label[0], label[2]*w, label[3]*h, label[4]*w, label[5]*h))
+                classes[int(label[1])], label[0], cx-w2, cy-h2, cx+w2, cy+h2))
 
 def image_label_generator(image_dir, lable_dir):
     all_files = [label.replace(".txt", "") for label in os.listdir(lable_dir) if label.endswith(".txt")]

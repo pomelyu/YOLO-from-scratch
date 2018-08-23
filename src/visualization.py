@@ -31,7 +31,11 @@ def visualize_class_label(image_path, label_path):
     
     for label in labels:
         class_name = "{}: {:.2}".format(label[0], float(label[1]))
-        draw_label_rect(class_name, int(label[2]), int(label[3]), int(label[4]), int(label[5]), ax)
+        x1 = int(label[2])
+        y1 = int(label[3])
+        x2 = int(label[4])
+        y2 = int(label[5])
+        draw_label_rect(class_name, (x1+x2)//2, (y1+y2)//2, x2-x1, y2-y1, ax)
 
     plt.show()   
 
