@@ -23,6 +23,15 @@ def load_label(path):
 
     return np.array(labels)
 
+def load_class_label(path):
+    labels = []
+    with open(path, 'r') as fin:
+        for line in fin:
+            obj = [ num for num in line.split(" ") ]
+            labels.append(obj)
+
+    return labels
+
 def save_image(path, image):
     io.imsave(path, image)
 
@@ -40,6 +49,13 @@ def save_score_label(labels, path):
         for label in labels:
             fout.write("{:.4f} {:.0f} {:.4f} {:.4f} {:.4f} {:.4f}\n".format(
                 label[0], label[1], label[2], label[3], label[4], label[5]))
+
+def save_class_label(labels, image_shape, classes, path):
+    h, w = image_shape
+    with open(path, "w") as fout:
+        for label in labels:
+            fout.write("{} {:.4f} {:.0f} {:.0f} {:.0f} {:.0f}\n".format(
+                classes[int(label[1])], label[0], label[2]*w, label[3]*h, label[4]*w, label[5]*h))
 
 def image_label_generator(image_dir, lable_dir):
     all_files = [label.replace(".txt", "") for label in os.listdir(lable_dir) if label.endswith(".txt")]

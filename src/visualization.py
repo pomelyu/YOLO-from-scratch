@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 
 from .constants import YOLO1_CLASS
-from .io import load_image, load_label
+from .io import load_image, load_label, load_class_label
 
 def visualize_label(image_path, label_path, classes=YOLO1_CLASS):
     image = load_image(image_path)
@@ -21,6 +21,19 @@ def visualize_label(image_path, label_path, classes=YOLO1_CLASS):
 
     plt.show()
 
+def visualize_class_label(image_path, label_path):
+    image = load_image(image_path)
+    labels = load_class_label(label_path)
+
+    plt.figure(figsize=(8, 8))
+    ax = plt.gca()
+    ax.imshow(image)
+    
+    for label in labels:
+        class_name = "{}: {:.2}".format(label[0], float(label[1]))
+        draw_label_rect(class_name, int(label[2]), int(label[3]), int(label[4]), int(label[5]), ax)
+
+    plt.show()   
 
 def visualize_bbox_map(image, bbox_map, classes=YOLO1_CLASS):
     plt.figure(figsize=(8, 8))

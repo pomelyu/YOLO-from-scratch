@@ -3,8 +3,8 @@ import os
 import io
 
 from .postprocess_pipeline import PostprocessPipeline
-from .io import load_image, save_label, save_score_label
-from .constants import MODEL_DIM
+from .io import load_image, save_label, save_score_label, save_class_label
+from .constants import MODEL_DIM, YOLO1_CLASS, LABEL_FORMAT
 from .preprocess import preprocess_image, restore_label
 
 class PredictPipleline():
@@ -26,7 +26,9 @@ class PredictPipleline():
         return label
 
 
-    def predict_batch(self, image_dir, out_dir, normalized=True, batch_size=32, callback=None, with_score=False):
+    def predict_batch(self, image_dir, out_dir, normalized=True, batch_size=32, callback=None, 
+        format=LABEL_FORMAT["DEFAULT"], classes=YOLO1_CLASS):
+
         generator = self._generator(image_dir, batch_size, normalized)
 
         while True:
@@ -39,10 +41,13 @@ class PredictPipleline():
 
             for label, image_shape, image_name in zip(labels, image_shapes, image_names):
                 label = restore_label(label, image_shape, self.dim)
-                if with_score:
-                    save_score_label(label, os.path.join(out_dir, image_name.replace(".jpg", ".txt")))
-                else:
+
+                if format == LABEL_FORMAT["DEFAULT"]:
                     save_label(label, os.path.join(out_dir, image_name.replace(".jpg", ".txt")))
+                elif format == LABEL_FORMAT["SCORE"]:
+                    save_score_label(label, os.path.join(out_dir, image_name.replace(".jpg", ".txt")))
+                elif format == LABEL_FORMAT["CLASS"]:
+                    save_class_label(label, image_shape, classes, os.path.join(out_dir, image_name.replace(".jpg", ".txt")))
 
             if callable:
                 callback()

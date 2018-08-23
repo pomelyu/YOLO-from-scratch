@@ -104,6 +104,12 @@ YOLO2_CLASS = [
     'toothbrush',
 ]
 
+LABEL_FORMAT = {
+    "DEFAULT": 0, 
+    "SCORE": 1,
+    "CLASS": 2,
+}
+
 CLASS_NAME = YOLO1_CLASS
 MODEL_DIM = 416
 GRID_SIZE = 13
