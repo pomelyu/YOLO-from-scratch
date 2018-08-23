@@ -1,6 +1,7 @@
 import numpy as np
 import os
 import io
+import time
 
 from .postprocess_pipeline import PostprocessPipeline
 from .io import load_image, save_label, save_score_label, save_class_label
@@ -13,7 +14,7 @@ class PredictPipleline():
         self.model = model
         self.postpipeline = PostprocessPipeline(anchors, conf_threshold, iou_threshold)
 
-    def predict_one(self, image, normalized=True):
+    def predict_one(self, image, normalized=True, show_time=False):
         image_shape = image.shape[:2]
         resized = preprocess_image(image, self.dim)
         resized = np.expand_dims(resized, axis=0)
@@ -21,8 +22,9 @@ class PredictPipleline():
         if normalized:
             resized = resized / 255
 
-        labels = self._predict(resized)
+        labels = self._predict(resized, show_time)
         label = restore_label(labels[0], image_shape, self.dim)
+        
         return label
 
 
@@ -31,6 +33,7 @@ class PredictPipleline():
 
         generator = self._generator(image_dir, batch_size, normalized)
 
+        counter = 1
         while True:
             try:
                 images, image_shapes, image_names = next(generator)
@@ -50,10 +53,12 @@ class PredictPipleline():
                     save_class_label(label, image_shape, classes, os.path.join(out_dir, image_name.replace(".jpg", ".txt")))
 
             if callable:
-                callback()
+                callback(counter)
+
+            counter += 1
 
 
-    def _predict(self, X):
+    def _predict(self, X, show_time=False):
         """
         Arguments:
             X: [None, MODEL_DIM, MODEL_DIM, 3]
@@ -61,7 +66,11 @@ class PredictPipleline():
             labels: [None,  ] - [Prob, class_idx, cx, cy, w, h]
                     cx, cy, w, h is relative to MODEL_DIM
         """
+        t0 = time.time()
+
         Y_predicts = self.model.predict(X)
+
+        t1 = time.time()
         res = []
         for i in range(len(Y_predicts)):
             scores, boxes, classes = self.postpipeline.process(Y_predicts[i])
@@ -74,6 +83,10 @@ class PredictPipleline():
 
             res.append(labels)
 
+        t2 = time.time()
+
+        if show_time:
+            print("Predict: {:.2f}ms, Post: {:.2f}ms".format((t1-t0) * 1000, (t2-t1) * 1000))
         return res
 
 
