@@ -1,6 +1,6 @@
 import os
 import numpy as np
-from keras.callbacks import ModelCheckpoint
+from keras.callbacks import ModelCheckpoint, TerminateOnNaN
 
 from .constants import GRID_SIZE, NUM_BOX, GAMMA_MIN, GAMMA_MAX
 from .io import load_image
@@ -67,6 +67,11 @@ def train_valid_yolo(model, train_images_dir, train_labels_dir, valid_images_dir
         vgg_input=vgg_input,
         normalized=normalized)
 
+    callbacks = [
+        ModelCheckpoint(os.path.join(model_dir, "{model_name}").format(model_name=model_name) + "-{epoch:02d}-{val_loss:.2f}.h5", save_best_only=True),
+        TerminateOnNaN(),
+    ]
+    
     # Training
     model_name = "{}-{}".format(model_name, epoch_begin)
     print("Epoch:", epoch_begin)
@@ -76,9 +81,8 @@ def train_valid_yolo(model, train_images_dir, train_labels_dir, valid_images_dir
         steps_per_epoch=(m_train // batch_size),
         validation_data=valid_generator,
         validation_steps=(m_valid // batch_size),
-        callbacks=[
-            ModelCheckpoint(os.path.join(model_dir, "{model_name}").format(model_name=model_name) + "-{epoch:02d}-{val_loss:.2f}.h5", save_best_only=True)
-        ] if model_name is not None else [],
+        initial_epoch=epoch_begin,
+        callbacks=callbacks
     )
 
         
