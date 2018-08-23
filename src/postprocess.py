@@ -30,19 +30,17 @@ def bbox_cell_to_global(boxes, anchors):
     Returns:
         boxes: [GRID_SIZE, GRID_SIZE, NUM_BOX, 4] - corner_x1, corner_y1, corner_x2, corner_y2
     """    
-    # In bbox matrix, x coordinate is first axis(axis=0, column)
-    # but in the image, x coordinate is horizontal. hence offset_x is 
-    # [[1, 1, ... , 1], 
-    #   2, 2, ... , 2],
+    # [[0, 1, 2, ... , 6], 
+    #   0, 1, 2, ... , 6],
     #   ...
-    #   6, 6, ... , 6]]
+    #   0, 1, 2, ... , 6]]
     grids = np.arange(GRID_SIZE)
     cell_x = tf.constant(
-        np.tile(grids.reshape((-1, 1)), (1, GRID_SIZE)).reshape((GRID_SIZE, GRID_SIZE, 1)),
+        np.tile(grids, (GRID_SIZE, 1)).reshape((GRID_SIZE, GRID_SIZE, 1)),
         dtype="float32"
     )
     cell_y = tf.constant(
-        np.tile(grids, (GRID_SIZE, 1)).reshape((GRID_SIZE, GRID_SIZE, 1)),
+        np.tile(grids.reshape((-1, 1)), (1, GRID_SIZE)).reshape((GRID_SIZE, GRID_SIZE, 1)),
         dtype="float32"
     )
     anchor_w = tf.constant(
