@@ -1,6 +1,8 @@
 import numpy as np
+import os
 
-from .io import load_anchors
+from .io import load_anchors, save_class_label, image_label_generator
+from .constants import YOLO1_CLASS
 
 def area(box):
     return (box[2] - box[0]) * (box[3] - box[1])
@@ -28,4 +30,16 @@ def choose_anchor(w, h, anchors):
             best_iou = score
 
     return best_anchor
+
+def yolo_2_class_label(image_dir, label_dir, out_dir, classes=YOLO1_CLASS):
+    generator = image_label_generator(image_dir, label_dir)
+
+    while True:
+        try:
+            file_name, image, label = next(generator)
+        except StopIteration:
+            break
+        image_shape = image.shape[:2]
+        file_path = os.path.join(out_dir, "{}.txt".format(file_name))
+        save_class_label(label, image_shape, classes, file_path, with_score=False)
 

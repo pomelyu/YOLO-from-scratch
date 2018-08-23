@@ -21,7 +21,7 @@ def visualize_label(image_path, label_path, classes=YOLO1_CLASS):
 
     plt.show()
 
-def visualize_class_label(image_path, label_path):
+def visualize_class_label(image_path, label_path, with_score=True):
     image = load_image(image_path)
     labels = load_class_label(label_path)
 
@@ -30,11 +30,12 @@ def visualize_class_label(image_path, label_path):
     ax.imshow(image)
     
     for label in labels:
-        class_name = "{}: {:.2}".format(label[0], float(label[1]))
-        x1 = int(label[2])
-        y1 = int(label[3])
-        x2 = int(label[4])
-        y2 = int(label[5])
+        box = label[2:] if with_score else label[1:]
+        class_name = "{}: {:.2}".format(label[0], float(label[1])) if with_score else label[0]
+        x1 = int(box[0])
+        y1 = int(box[1])
+        x2 = int(box[2])
+        y2 = int(box[3])
         draw_label_rect(class_name, (x1+x2)//2, (y1+y2)//2, x2-x1, y2-y1, ax)
 
     plt.show()   

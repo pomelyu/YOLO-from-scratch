@@ -50,16 +50,21 @@ def save_score_label(labels, path):
             fout.write("{:.4f} {:.0f} {:.4f} {:.4f} {:.4f} {:.4f}\n".format(
                 label[0], label[1], label[2], label[3], label[4], label[5]))
 
-def save_class_label(labels, image_shape, classes, path):
+def save_class_label(labels, image_shape, classes, path, with_score=True):
     h, w = image_shape
     with open(path, "w") as fout:
         for label in labels:
-            cx = label[2] * w
-            cy = label[3] * h
-            w2 = (label[4] * w) // 2
-            h2 = (label[5] * h) // 2
-            fout.write("{} {:.4f} {:.0f} {:.0f} {:.0f} {:.0f}\n".format(
-                classes[int(label[1])], label[0], cx-w2, cy-h2, cx+w2, cy+h2))
+            box = label[2:] if with_score else label[1:]
+            cx = box[0] * w
+            cy = box[1] * h
+            w2 = (box[2] * w) // 2
+            h2 = (box[3] * h) // 2
+            if with_score:
+                fout.write("{} {:.4f} {:.0f} {:.0f} {:.0f} {:.0f}\n".format(
+                    classes[int(label[1])], label[0], cx-w2, cy-h2, cx+w2, cy+h2))
+            else:
+                fout.write("{} {:.0f} {:.0f} {:.0f} {:.0f}\n".format(
+                    classes[int(label[0])], cx-w2, cy-h2, cx+w2, cy+h2))
 
 def image_label_generator(image_dir, lable_dir):
     all_files = [label.replace(".txt", "") for label in os.listdir(lable_dir) if label.endswith(".txt")]
