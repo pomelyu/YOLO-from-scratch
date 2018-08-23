@@ -55,6 +55,20 @@ def visualize_score_bbox(image, scores, boxes, classes, class_name=YOLO1_CLASS, 
             verticalalignment="top", backgroundcolor=color, color="white")
         ax.add_patch(patches.Rectangle((x, y), w, h, fill=False, linewidth=1, edgecolor=color))
 
+
+def visualize_score_label(image, labels, classes=YOLO1_CLASS):    
+    plt.figure(figsize=(8, 8))
+    ax = plt.gca()
+    ax.imshow(image)
+    
+    h, w, _ = image.shape
+    for label in labels:
+        class_name = "{}: {:.2}".format(classes[int(label[1])], label[0])
+        draw_label_rect(class_name, label[2] * w, label[3] * h, label[4] * w, label[5] * h, ax)
+
+    plt.show()
+
+
 def draw_label_rect(name, cx, cy, w, h, ax, color="blue"):
     x = cx - (w / 2)
     y = cy - (h / 2)
