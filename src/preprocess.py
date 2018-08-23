@@ -10,7 +10,8 @@ def preprocess_image(image, dim=MODEL_DIM):
     ratio = min(dim / w, dim / h)
     new_w = int(w * ratio)
     new_h = int(h * ratio)
-    resized = resize(image, (new_h, new_w), mode="constant")
+    resized = resize(image, (new_h, new_w), mode="constant", preserve_range=True)
+    resized = resized.astype(np.uint8)
     
     padded = np.zeros((dim, dim, 3))
     pad_h = (dim - new_h) // 2
