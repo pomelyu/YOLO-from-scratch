@@ -5,6 +5,7 @@ from keras.callbacks import ModelCheckpoint, TerminateOnNaN
 from .constants import GRID_SIZE, NUM_BOX, GAMMA_MIN, GAMMA_MAX, MODEL_DIM
 from .io import load_image, load_label
 from .preprocess import ResizeTransform, bbox_2_bbox_map
+from .augmentation import Augmentation
 from .image_transform import covert_to_VGG_input
 
 def data_generator(image_dir, label_dir, anchors, batch_size=32, shuffle=True, augment=False, 
@@ -14,6 +15,7 @@ def data_generator(image_dir, label_dir, anchors, batch_size=32, shuffle=True, a
     n = len(files)
 
     resize_transform = ResizeTransform()
+    augmentation = Augmentation()
     while True:
         if shuffle:
             files = files[np.random.permutation(n)]
@@ -26,12 +28,14 @@ def data_generator(image_dir, label_dir, anchors, batch_size=32, shuffle=True, a
                 label = load_label(os.path.join(label_dir, "{}.txt".format(file_name)))
 
                 image, label[:, 1:] = resize_transform.transform(image, label[:, 1:])
-                label = bbox_2_bbox_map(label, anchors)
-
+                if augment:
+                    image, label = augmentation.transform(image, label)
                 if vgg_input:
                     image = covert_to_VGG_input(image)
                 if normalized:
                     image = image / 255
+
+                label = bbox_2_bbox_map(label, anchors)
 
                 images.append(image)
                 labels.append(label)
