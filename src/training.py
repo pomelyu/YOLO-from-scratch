@@ -1,5 +1,6 @@
 import os
 import numpy as np
+import math
 from keras.callbacks import ModelCheckpoint, TerminateOnNaN
 
 from .constants import GRID_SIZE, NUM_BOX, GAMMA_MIN, GAMMA_MAX, MODEL_DIM
@@ -76,16 +77,16 @@ def train_valid_yolo(model, anchors, train_images_dir, train_labels_dir, valid_i
         ModelCheckpoint(os.path.join(model_dir, "{model_name}").format(model_name=model_name) + "-{epoch:02d}-{val_loss:.2f}.h5", save_best_only=True),
         TerminateOnNaN(),
     ]
-    
+
     # Training
     model_name = "{}-{}".format(model_name, epoch_begin)
     print("Epoch:", epoch_begin)
     model.fit_generator(
         train_generator,
         epochs=epochs,
-        steps_per_epoch=(m_train // batch_size),
+        steps_per_epoch=math.ceil(m_train / batch_size),
         validation_data=valid_generator,
-        validation_steps=(m_valid // batch_size),
+        validation_steps=math.ceil(m_valid / batch_size),
         initial_epoch=epoch_begin,
         callbacks=callbacks
     )
@@ -105,5 +106,5 @@ def evaluate_yolo(model, anchors, images_dir, labels_dir, batch_size=32, vgg_inp
         vgg_input=vgg_input,
         normalized=normalized)
     
-    loss = model.evaluate_generator(test_generator, steps=(m // batch_size), verbose=1)
+    loss = model.evaluate_generator(test_generator, steps=math.ceil(m / batch_size), verbose=1)
     print("Evaluation loss:", loss)
