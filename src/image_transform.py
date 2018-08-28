@@ -40,7 +40,30 @@ def translation_and_scale_image(image, label, s, dx, dy):
     label[:, 3] = label[:, 3] * s
     label[:, 4] = label[:, 4] * s
 
-    return image, label
+    res_label = []
+    for lb in label:
+        if lb[1] < 0 or lb[1] > 1 or lb[2] < 0 or lb[2] > 1:
+            continue
+
+        half_w = lb[3] / 2
+        half_h = lb[4] / 2
+        if lb[1] - half_w < 0:
+            lb[3] = lb[1] + half_w
+            lb[1] = lb[3] / 2
+        elif lb[1] + half_w > 1:
+            lb[3] = 1 - (lb[1] - half_w)
+            lb[1] = 1 - lb[3] / 2
+
+        if lb[2] - half_h < 0:
+            lb[4] = lb[2] + half_h
+            lb[2] = lb[4] / 2
+        elif lb[2] + half_h > 1:
+            lb[4] = 1 - (lb[2] - half_h)
+            lb[2] = 1 - lb[4] / 2
+
+        res_label.append(lb)
+
+    return image, np.array(res_label)
 
 def covert_to_VGG_input(image):
     VGG_MEAN = [103.939, 116.779, 123.68]
