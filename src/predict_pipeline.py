@@ -6,31 +6,32 @@ import time
 from .postprocess_pipeline import PostprocessPipeline
 from .io import load_image, save_label, save_score_label, save_class_label
 from .constants import MODEL_DIM, YOLO1_CLASS, LABEL_FORMAT
-from .preprocess import preprocess_image, restore_label
+from .preprocess import ResizeTransform
 
 class PredictPipleline():
     def  __init__(self, model, anchors, conf_threshold=0.6, iou_threshold=0.5, dim=MODEL_DIM):
         self.dim = dim
         self.model = model
+        self.resize_transform = ResizeTransform(dim, dim)
         self.postpipeline = PostprocessPipeline(anchors, conf_threshold, iou_threshold)
 
     def predict_one(self, image, normalized=True, show_time=False):
         image_shape = image.shape[:2]
-        resized = preprocess_image(image, self.dim)
+        resized = self.resize_transform.transform(image)
         resized = np.expand_dims(resized, axis=0)
 
         if normalized:
             resized = resized / 255
 
         labels = self._predict(resized, show_time)
-        label = restore_label(labels[0], image_shape, self.dim)
+        labels = np.array(labels[0])
+        labels[:, 2:] = self.resize_transform.reverse_transform_bbox(labels[:, 2:], image_shape)
         
-        return label
+        return labels
 
 
     def predict_batch(self, image_dir, out_dir, normalized=True, batch_size=32, callback=None, 
         format=LABEL_FORMAT["DEFAULT"], classes=YOLO1_CLASS):
-
         generator = self._generator(image_dir, batch_size, normalized)
 
         counter = 1
@@ -43,7 +44,9 @@ class PredictPipleline():
             labels = self._predict(images)
 
             for label, image_shape, image_name in zip(labels, image_shapes, image_names):
-                label = restore_label(label, image_shape, self.dim)
+                if label:
+                    label = np.array(label)
+                    label[:, 2:] = self.resize_transform.reverse_transform_bbox(label[:, 2:], image_shape)
 
                 if format == LABEL_FORMAT["DEFAULT"]:
                     save_label(label, os.path.join(out_dir, image_name.replace(".jpg", ".txt")))
@@ -92,14 +95,14 @@ class PredictPipleline():
 
     def _generator(self, image_dir, batch_size=32, normalized=True):
         image_names = [name for name in os.listdir(image_dir) if name.endswith(".jpg")]
-        
+
         for idx in range(0, len(image_names), batch_size):
             images = []
             image_shapes = []
             for name in image_names[idx:idx+batch_size]:
                 image = load_image(os.path.join(image_dir, name))
                 image_shape = image.shape[:2]
-                resized = preprocess_image(image, self.dim)
+                resized = self.resize_transform.transform(image)
 
                 if normalized:
                     resized = resized / 255
