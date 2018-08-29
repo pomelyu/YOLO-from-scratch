@@ -16,7 +16,7 @@ def data_generator(image_dir, label_dir, anchors, batch_size=32, shuffle=True, a
     n = len(files)
 
     resize_transform = ResizeTransform()
-    augmentation = Augmentation()
+    augmentation = Augmentation(gamma=False)
     while True:
         if shuffle:
             files = files[np.random.permutation(n)]
