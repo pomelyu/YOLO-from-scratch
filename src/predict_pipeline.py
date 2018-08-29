@@ -25,7 +25,8 @@ class PredictPipleline():
 
         labels = self._predict(resized, show_time)
         labels = np.array(labels[0])
-        labels[:, 2:] = self.resize_transform.reverse_transform_bbox(labels[:, 2:], image_shape)
+        if len(labels) > 0:
+            labels[:, 2:] = self.resize_transform.reverse_transform_bbox(labels[:, 2:], image_shape)
         
         return labels
 
