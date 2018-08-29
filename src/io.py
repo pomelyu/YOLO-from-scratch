@@ -1,6 +1,7 @@
 import os
 import numpy as np
 from skimage import io
+from .constants import GRID_SIZE
 
 def load_anchors(path=None):
     return np.array([
@@ -9,7 +10,7 @@ def load_anchors(path=None):
         [3.33843, 5.47434],
         [7.88282, 3.52778],
         [9.77052, 9.16828],
-    ])
+    ]) / GRID_SIZE
 
 def load_image(path):
     return io.imread(path)

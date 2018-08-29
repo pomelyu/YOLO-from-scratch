@@ -36,8 +36,8 @@ def create_yolo_loss(anchors, lambda_coord=5, lambda_noobj=0.5):
         loss_c = tf.square(y_true[..., 0] - pred_c)
         loss_x = tf.square(y_true[..., 1] - pred_x)
         loss_y = tf.square(y_true[..., 2] - pred_y)
-        loss_w = tf.square(tf.sqrt(y_true[..., 3]) - tf.sqrt(pred_w))
-        loss_h = tf.square(tf.sqrt(y_true[..., 4]) - tf.sqrt(pred_h))
+        loss_w = tf.square(tf.sqrt(y_true[..., 3]) - tf.sqrt(pred_w)) * GRID_SIZE
+        loss_h = tf.square(tf.sqrt(y_true[..., 4]) - tf.sqrt(pred_h)) * GRID_SIZE
         loss_class = tf.reduce_sum(tf.square(y_true[..., 5:] - pred_class), axis=-1)
         
         loss_bbox = tf.reduce_sum(lc * obj_mask * (loss_x + loss_y + loss_w + loss_h))
