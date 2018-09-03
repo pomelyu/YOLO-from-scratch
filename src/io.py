@@ -4,13 +4,23 @@ from skimage import io
 from .constants import GRID_SIZE
 
 def load_anchors(path=None):
+    # COCO
+#     return np.array([
+#         [0.57273, 0.67739],
+#         [1.87446, 2.06253],
+#         [3.33843, 5.47434],
+#         [7.88282, 3.52778],
+#         [9.77052, 9.16828],
+#     ]) / GRID_SIZE
+    
+    # VOC
     return np.array([
-        [0.57273, 0.67739],
-        [1.87446, 2.06253],
-        [3.33843, 5.47434],
-        [7.88282, 3.52778],
-        [9.77052, 9.16828],
-    ]) / GRID_SIZE
+        [1.32210, 1.73145],
+        [3.19275, 4.00944],
+        [5.05587, 8.09892],
+        [9.47112, 4.84053],
+        [11.2364, 10.0071],
+    ])
 
 def load_image(path):
     return io.imread(path)
